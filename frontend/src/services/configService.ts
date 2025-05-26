@@ -32,10 +32,10 @@ export default class ConfigService {
     return new Promise((resolve, reject) => {
       if (storageType.getItem(StorageKey.CONFIG) === null) {
         axios
-          .get('/config', {
+          .get('/api/config', {
             headers: {
               'Cache-Control': 'no-cache',
-              'Pragma': 'no-cache'
+              Pragma: 'no-cache'
             }
           })
           .then(({ data }) => {
@@ -67,7 +67,7 @@ export default class ConfigService {
           .get('/config', {
             headers: {
               'Cache-Control': 'no-cache',
-              'Pragma': 'no-cache'
+              Pragma: 'no-cache'
             }
           })
           .then(({ data }) => {

@@ -1,5 +1,6 @@
 # Editor directories and files
 .DS_Store
+.vscode/
 .gradle
 .nyc_output
 .scannerwork
@@ -22,6 +23,10 @@ Chart.lock
 *local-*.*
 .env.local
 .env.*.local
+.env
+# Ignore all .env files
+# except .env.sample
+!.env.sample
 
 
 # Log files
@@ -41,3 +46,8 @@ yarn-error.log*
 
 # temp office files
 ~$*
+
+__pycache__/
+*.pyc
+.venv/
+app_node/

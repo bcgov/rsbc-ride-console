@@ -47,44 +47,46 @@ const languagesEcosystem: Array<{ text: string; href: string }> = [
 </script>
 
 <template>
-  <Message
-    v-if="getConfig?.notificationBanner"
-    severity="warn"
-  >
-    {{ getConfig?.notificationBanner }}
-  </Message>
+  <div>
+    <Message
+      v-if="getConfig?.notificationBanner"
+      severity="warn"
+    >
+      {{ getConfig?.notificationBanner }}
+    </Message>
 
-  <div class="text-center">
-    <h1 class="font-bold">Welcome to the Vue 3 Scaffold!</h1>
-    <h2>Frontend Ecosystem</h2>
-    <a
-      v-for="(eco, i) in frontEcosystem"
-      :key="i"
-      :href="eco.href"
-      class="mx-3"
-      target="_blank"
-    >
-      {{ eco.text }}
-    </a>
-    <h2>Backend Ecosystem</h2>
-    <a
-      v-for="(eco, i) in backEcosystem"
-      :key="i"
-      :href="eco.href"
-      class="mx-3"
-      target="_blank"
-    >
-      {{ eco.text }}
-    </a>
-    <h2>Languages</h2>
-    <a
-      v-for="(eco, i) in languagesEcosystem"
-      :key="i"
-      :href="eco.href"
-      class="mx-3"
-      target="_blank"
-    >
-      {{ eco.text }}
-    </a>
+    <div class="text-center">
+      <h1 class="font-bold">Welcome to the RIDE Console!</h1>
+      <h2>Frontend Ecosystem</h2>
+      <a
+        v-for="(eco, i) in frontEcosystem"
+        :key="i"
+        :href="eco.href"
+        class="mx-3"
+        target="_blank"
+      >
+        {{ eco.text }}
+      </a>
+      <h2>Backend Ecosystem</h2>
+      <a
+        v-for="(eco, i) in backEcosystem"
+        :key="i"
+        :href="eco.href"
+        class="mx-3"
+        target="_blank"
+      >
+        {{ eco.text }}
+      </a>
+      <h2>Languages</h2>
+      <a
+        v-for="(eco, i) in languagesEcosystem"
+        :key="i"
+        :href="eco.href"
+        class="mx-3"
+        target="_blank"
+      >
+        {{ eco.text }}
+      </a>
+    </div>
   </div>
 </template>

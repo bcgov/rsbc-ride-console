@@ -31,7 +31,7 @@ function initializeApp(): void {
   const pinia = createPinia();
   pinia.use(
     createPersistedState({
-      key: (id) => `vue3-scaffold.${id}`
+      key: (id) => `ride-console.${id}`
     })
   );
 

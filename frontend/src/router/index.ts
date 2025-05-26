@@ -114,7 +114,7 @@ export default function getRouter() {
 
   router.afterEach((to) => {
     // Update document title
-    document.title = to.meta.title ? `Vue 3 Scaffold - ${to.meta.title}` : 'Vue 3 Scaffold';
+    document.title = to.meta.title ? `RIDE Console - ${to.meta.title}` : 'RIDE Console';
 
     appStore.endDeterminateLoading();
   });

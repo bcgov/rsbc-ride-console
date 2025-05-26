@@ -6,9 +6,10 @@ import vue from '@vitejs/plugin-vue';
 import vueJsx from '@vitejs/plugin-vue-jsx';
 
 const proxyObject = {
-  target: 'http://localhost:8080',
+  target: 'http://localhost:8085',
   ws: true,
-  changeOrigin: true
+  changeOrigin: true,
+  secure: false
 };
 
 // https://vitejs.dev/config/
@@ -28,9 +29,9 @@ export default defineConfig({
     }
   },
   server: {
+    port: 3000,
     proxy: {
-      '/api': proxyObject,
-      '/config': proxyObject
+      '/api': proxyObject
     }
   },
   test: {
