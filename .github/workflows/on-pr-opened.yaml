@@ -1,8 +1,5 @@
 name: Pull Request Opened
 
-env:
-  APP_NAME: vue3-scaffold
-
 on:
   pull_request:
     branches:
@@ -19,16 +16,10 @@ concurrency:
 jobs:
   build:
     name: Build & Push
-    if: "! github.event.pull_request.head.repo.fork"
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Build & Push
-        uses: ./.github/actions/build-push-container
-        with:
-          context: .
-          image_name: ${{ env.APP_NAME }}
-          github_username: ${{ github.repository_owner }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+    uses: ./.github/workflows/cd-workflow.yml
+    with:
+      DOCKER_CONTEXT: .
+      DOCKER_FILE: Dockerfile
+      DOCKER_IMAGE_NAME: rbe5-images/rsbc-ride-console
+      DOCKER_IMAGE_TAG: ${{ github.event.pull_request.head.sha }}
+    secrets: inherit
