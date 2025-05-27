@@ -51,3 +51,6 @@ __pycache__/
 *.pyc
 .venv/
 app_node/
+coverage_re/
+.coverage
+test-results/

@@ -1,7 +1,7 @@
 from app.tests.test_client import client
 
 def test_health():
-    response = client.get("/health")
+    response = client.get("/api/health")
     assert response.status_code == 200
     assert response.json() == {"status": "healthy"}
 
@@ -14,8 +14,8 @@ def test_ready_success(monkeypatch):
         async def command(self, cmd):
             return await mock_command(cmd)
     
-    monkeypatch.setattr("app.database.db", MockDB())
-    response = client.get("/ready")
+    monkeypatch.setattr("app.routes.health.db", MockDB())
+    response = client.get("/api/ready")
     assert response.status_code == 200
     assert response.json() == {"status": "ready"}
 
@@ -28,8 +28,8 @@ def test_ready_failure(monkeypatch):
         async def command(self, cmd):
             return await mock_command(cmd)
     
-    monkeypatch.setattr("app.database.db", MockDB())
-    response = client.get("/ready")
+    monkeypatch.setattr("app.routes.health.db", MockDB())
+    response = client.get("/api/ready")
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "unavailable"

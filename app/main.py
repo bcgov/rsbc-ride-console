@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
@@ -13,4 +14,6 @@ app.include_router(health.router, prefix="/api")
 def read_root():
     return {"message": "RIDE Console API Running"}
 
-app.mount("/", StaticFiles(directory="app/static_content", html=True, follow_symlink=True), name="static")
+print(os.path.join(os.path.dirname(__file__), "static_content"))
+static_content_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "static_content"))
+app.mount("/", StaticFiles(directory=static_content_path, html=True, follow_symlink=True), name="static")
