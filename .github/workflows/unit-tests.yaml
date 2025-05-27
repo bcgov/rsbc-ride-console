@@ -9,9 +9,6 @@ jobs:
   test-app:
     name: Unit Tests (App)
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: app
     outputs:
       HAS_CC_SECRETS: ${{ steps.check-secrets.outputs.HAS_CC_SECRETS }}
     timeout-minutes: 10
@@ -29,7 +26,7 @@ jobs:
       - name: Test with pytest
         run: |
           pip install pytest pytest-cov pytest-mock
-          pytest tests/ --doctest-modules --junitxml=test-results/test-results.xml --cov --cov-report=html:coverage_report
+          pytest app/tests/ --doctest-modules --junitxml=test-results/test-results.xml --cov --cov-report=html:coverage_report
       - name: Upload pytest test results
         uses: actions/upload-artifact@v4
         with:

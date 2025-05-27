@@ -31,7 +31,7 @@ jobs:
           push: false
 
   trivy-scan:
-    uses: ./.github/workflows/trivy-scan-workflow.yml
+    uses: ./.github/actions/trivy-scan-workflow.yml
     with:
       DOCKER_CONTEXT: .
       DOCKER_FILE: Dockerfile
