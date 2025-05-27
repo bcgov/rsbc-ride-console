@@ -30,13 +30,13 @@ jobs:
       - name: Upload pytest test results
         uses: actions/upload-artifact@v4
         with:
-          name: api/pytest-results
+          name: test-results-api
           path: test-results/test-results.xml
           retention-days: 15
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         with:
-          name: api/coverage-report
+          name: coverage-api
           path: coverage_report/
           retention-days: 15
   test-frontend:

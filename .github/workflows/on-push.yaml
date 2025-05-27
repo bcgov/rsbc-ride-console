@@ -1,4 +1,4 @@
-name: Push
+name: Push - Check Build and Scan
 on:
   push:
 
@@ -31,7 +31,7 @@ jobs:
           push: false
 
   trivy-scan:
-    uses: ./.github/actions/trivy-scan-workflow.yml
+    uses: ./.github/workflows/trivy-scan-workflow.yml
     with:
       DOCKER_CONTEXT: .
       DOCKER_FILE: Dockerfile
