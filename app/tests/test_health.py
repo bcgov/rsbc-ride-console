@@ -30,7 +30,7 @@ def test_ready_failure(monkeypatch):
     
     monkeypatch.setattr("app.routes.health.db", MockDB())
     response = client.get("/api/ready")
-    assert response.status_code == 200
+    assert response.status_code == 503
     data = response.json()
     assert data["status"] == "unavailable"
     assert "error" in data
