@@ -18,6 +18,5 @@ jobs:
     uses: ./.github/workflows/template-deployment-workflow.yml
     with:
       IMAGE_NAME: rbe5-images/rsbc-ride-console
-      APP_FOLDER: ride-console
       ENV_NAME: ${{ github.event.inputs.environment }}
       RELEASE_NAME: ${{ github.event.inputs.release_name }}
