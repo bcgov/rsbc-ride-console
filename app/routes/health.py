@@ -19,7 +19,7 @@ async def ready():
         logging.exception(f"Database connection error: {e}")
         return JSONResponse(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            content={"status": "unavailable", "error": str(e)}
+            content={"status": "unavailable", "error": "An internal error has occurred."}
         )
     # If the database is reachable, return ready status
     return {"status": "ready"}
