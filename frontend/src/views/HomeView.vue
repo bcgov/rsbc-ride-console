@@ -1,11 +1,28 @@
 <script setup lang="ts">
 import { Message } from '@/lib/primevue';
 import { storeToRefs } from 'pinia';
+import { useRoute, useRouter } from 'vue-router';
 
 import { useConfigStore } from '@/store';
 
 // Store
 const { getConfig } = storeToRefs(useConfigStore());
+
+const route = useRoute();
+const router = useRouter();
+const redirectParam = route.query.redirect as string | undefined;
+if (redirectParam) {
+  let queryParameters = Object.entries(route.query)
+    .filter(([key]) => key !== 'redirect')
+    .reduce(
+      (acc, [key, value]) => {
+        acc[key] = value as string;
+        return acc;
+      },
+      {} as Record<string, string>
+    );
+  router.replace({ path: redirectParam, query: queryParameters });
+}
 
 // Actions
 const frontEcosystem: Array<{ text: string; href: string }> = [

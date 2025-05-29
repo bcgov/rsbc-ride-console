@@ -1,31 +1,20 @@
-# Vue 3 Scaffold
+# RIDE Console - Monitoring and Admin Tools
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Lifecycle:Maturing](https://img.shields.io/badge/Lifecycle-Maturing-007EC6)](https://github.com/bcgov/repomountie/blob/master/doc/lifecycle-badges.md)
 
-![Tests](https://github.com/bcgov/vue3-scaffold/workflows/Tests/badge.svg)
-[![Maintainability](https://api.codeclimate.com/v1/badges/c8851505a24845123966/maintainability)](https://codeclimate.com/github/bcgov/vue3-scaffold/maintainability)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/c8851505a24845123966/test_coverage)](https://codeclimate.com/github/bcgov/vue3-scaffold/test_coverage)
+![Tests](https://github.com/bcgov/rsbc-ride-console/workflows/Tests/badge.svg)
 
-A clean Vue 3 frontend & backend scaffold example
 
-To learn more about the **Common Services** available visit the [Common Services Showcase](https://bcgov.github.io/common-service-showcase/) page.
+Web Portal that provides monitoring and adminitrative tools for the RIDE Platform.
 
 ## Directory Structure
 
 ```txt
 .github/                   - PR, Issue templates
-.vscode/                   - VSCode environment configurations
-app/                       - Application Root
+app/                       - Python API Root
 ├── config/                - configuration exposed as environment variables
-├── src/                   - Node.js web application
-│   ├── components/        - Components Layer
-│   ├── controllers/       - Controller Layer
-│   ├── middleware/        - Middleware Layer
-│   ├── routes/            - Routes Layer
-│   ├── services/          - Services Layer
-│   └── types/             - Typescript type definitions
-└── tests/                 - Node.js web application tests
+└── tests/                 - Pytest tests
 frontend/                  - Frontend Root
 ├── src/                   - Node.js web application
 │   ├── assets/            - Static File Assets
@@ -60,9 +49,8 @@ SECURITY.md                - Security Policy and Reporting
 You can quickly run this application in development mode after cloning by opening two terminal windows and running the following commands (assuming you have already set up local configuration as well). Refer to the [Application Readme](app/README.md) and [Frontend Readme](app/frontend/README.md) for more details.
 
 ```
-cd app
-npm i
-npm run serve
+pip install -r requirements
+uvicorn app.main:app --host 0.0.0.0 --port 8085
 ```
 
 ```

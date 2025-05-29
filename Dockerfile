@@ -1,7 +1,7 @@
 #
 # Build the frontend
 #
-FROM docker.io/node:20.19.2-alpine AS frontend
+FROM node:20.19.2-alpine AS frontend
 
 # Build Frontend
 COPY /frontend /app
@@ -11,7 +11,7 @@ RUN npm ci && npm run build
 #
 # Build the app
 #
-FROM docker.io/python:3.12-alpine AS app
+FROM python:3.12-alpine AS app
 
 # Build App
 COPY requirements.txt /python/requirements.txt
