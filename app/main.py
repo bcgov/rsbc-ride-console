@@ -1,12 +1,18 @@
 import os
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.concurrency import asynccontextmanager
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse, RedirectResponse
+
 import uvicorn
 
 from app.routes import config
 from app.routes import health
+from app.routes import recon
+from app.routes import ftp
+from app.routes import errors
+
+
 import logging
 
 LOGGER_FORMAT = "[RIDE_CONSOLE_API] %(asctime)s %(levelname)s [%(name)s] %(message)s"
@@ -15,10 +21,17 @@ logging.basicConfig(
   format=os.getenv("LOGGER_FORMAT", LOGGER_FORMAT)
 )
 
+
+
+
 app = FastAPI(title="RIDE Console API", version="0.0.1")
+
 
 app.include_router(config.router, prefix="/api")
 app.include_router(health.router, prefix="/api")
+app.include_router(recon.router, prefix="/api")
+app.include_router(ftp.router, prefix="/api")
+app.include_router(errors.router, prefix="/api")
 
 @app.get("/api")
 def read_root():
@@ -33,3 +46,7 @@ async def custom_404_handler(request, __):
     if request.url.path.startswith("/api"):
         return JSONResponse(status_code=404, content={"detail": "Not found"})
     return RedirectResponse(f"/?redirect={request.url.path}&{request.url.query}" if request.url.query else f"/?redirect={request.url.path}")
+
+
+
+

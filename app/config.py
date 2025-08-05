@@ -11,6 +11,12 @@ class Config:
     API_PATH = os.getenv("API_PATH", "/api/v1")
     OIDC_AUTHORITY = os.getenv("OIDC_AUTHORITY", "https://some.authority")
     OIDC_FRONTEND_CLIENT_ID = os.getenv("OIDC_FRONTEND_CLIENT_ID", "client-frontend-local")
+   
+  
+    OIDC_BACKEND_CLIENT_ID=os.getenv("OIDC_BACKEND_CLIENT_ID", "client-backend-local")
+    OIDC_BACKEND_CLIENT_SECRET=os.getenv("OIDC_BACKEND_CLIENT_SECRET", "")
+    BASE_AUTHORIZATION_SERVER_URI=os.getenv("BASE_AUTHORIZATION_SERVER_URI", "BASE_AUTHORIZATION_SERVER_URI")
+
     
     FRONTEND_CONFIG = {
         "apiPath": API_PATH,
