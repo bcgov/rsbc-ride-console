@@ -23,6 +23,8 @@ class Error(BaseModel):
     detailsTxt: str
     serviceNm: str
     _class: str
+    fixed: Optional[bool] = Field(default=False, description="Mark if the error is fixed")
+    under_analysis: Optional[bool] = Field(default=False, description="Mark if the error is under analysis")
     comments: Optional[List[ErrorComment]] = None
 
 model_config = {
