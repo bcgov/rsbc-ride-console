@@ -1,7 +1,8 @@
-from fastapi import APIRouter,  HTTPException, Body, Path
+from fastapi import APIRouter,  HTTPException, Body, Path, Depends
 from typing import List
 from app.models.event import Event
 from app.db.mongo import recon_db
+from app.auth.auth import authenticate_user
 from app.util.common import clean_mongo_doc
 from bson import ObjectId
 from bson.errors import InvalidId
@@ -191,7 +192,7 @@ async def reset_all_retry_exceptions():
         }
     }
 )
-async def get_error_count():
+async def get_error_count(user: dict = Depends(authenticate_user)):
     docs = await recon_db["errortable"].find().to_list(length=100)
     return get_events(docs)
 
@@ -307,8 +308,8 @@ async def delete_all_error_staging():
     }
 )
 async def get_staging_count():
-    query = {"recon_count": {"$lte": 10}}
-    docs = await recon_db["mainstaging"].find(query).to_list(length=100)
+   
+    docs = await recon_db["mainstaging"].find().to_list(length=100)
     return get_events(docs)
 
 @router.delete(

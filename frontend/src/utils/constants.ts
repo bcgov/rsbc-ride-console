@@ -22,7 +22,8 @@ export const RouteNames = Object.freeze({
  */
 export const StorageKey = Object.freeze({
   AUTH: 'entrypoint',
-  CONFIG: 'config'
+  CONFIG: 'config',
+  EVENTS: 'RECON_EVENTS',
 });
 
 /**

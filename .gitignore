@@ -54,3 +54,11 @@ app_node/
 coverage_re/
 .coverage
 test-results/
+docker-compose.yml
+dockerfile.backend
+dockerfile.frontend
+frontend/dockerfile.frontend
+ftp-upload/
+.vscode/
+
+

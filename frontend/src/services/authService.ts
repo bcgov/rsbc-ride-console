@@ -73,6 +73,22 @@ export default class AuthService {
   public async getUser(): Promise<User | null> {
     return AuthService._userManager.getUser();
   }
+  
+  /**
+   * @function getUserToken
+   * Returns the OIDC current user token
+   * @returns {Promise<string | null>} Returns a user token if logged in, null otherwise
+   */
+  public async getUserToken(): Promise<string | null> {
+    let user = await this.getUser();
+
+    if (!user || user.expired) {
+      await this.login();
+      user = await this.getUser();
+    }
+
+    return user?.access_token || null;
+  }
 
   /**
    * @function getUserManager
