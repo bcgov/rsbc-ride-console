@@ -44,10 +44,10 @@ app.mount("/static", StaticFiles(directory="app/static_content", check_dir=False
 
 
 
-@app.get("/{full_path:path}")
+@app.get("/{full_path:path}", include_in_schema=False)
 async def spa_router(request: Request, full_path: str):
     if request.url.path.startswith("/api"):
-        return JSONResponse(status_code=404, content={"detail": "Not found"})
+        return {"message": "RIDE Console API Running"}
 
     index_path = "app/static_content/index.html"
     if os.path.exists(index_path):
