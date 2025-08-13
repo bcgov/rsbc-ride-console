@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse, RedirectResponse
 
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from fastapi import Request
 import os
 
 import uvicorn
@@ -41,13 +42,18 @@ app.include_router(errors.router, prefix="/api")
 app.mount("/assets", StaticFiles(directory="app/static_content/assets",check_dir=False), name="assets")
 app.mount("/static", StaticFiles(directory="app/static_content", check_dir=False), name="static")
 
-# Serve index.html for Vue SPA routes
+
+
 @app.get("/{full_path:path}")
-async def spa_router(full_path: str):
+async def spa_router(request: Request, full_path: str):
+    if request.url.path.startswith("/api"):
+        return JSONResponse(status_code=404, content={"detail": "Not found"})
+
     index_path = "app/static_content/index.html"
     if os.path.exists(index_path):
         return FileResponse(index_path)
     return {"error": "index.html not found"}
+
 
 @app.get("/api")
 def read_root():
