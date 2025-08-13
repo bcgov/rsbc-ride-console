@@ -1,74 +1,60 @@
-import os
-from fastapi import FastAPI, Depends
-from fastapi.concurrency import asynccontextmanager
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse, RedirectResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import JSONResponse, RedirectResponse
-
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
-from fastapi import Request
 import os
-
-import uvicorn
-
-from app.routes import config
-from app.routes import health
-from app.routes import recon
-from app.routes import ftp
-from app.routes import errors
-
-
 import logging
 
+from app.routes import config, health, recon, ftp, errors
+
+# Logging setup
 LOGGER_FORMAT = "[RIDE_CONSOLE_API] %(asctime)s %(levelname)s [%(name)s] %(message)s"
 logging.basicConfig(
-  level=os.getenv("LOG_LEVEL", logging.INFO),
-  format=os.getenv("LOGGER_FORMAT", LOGGER_FORMAT)
+    level=os.getenv("LOG_LEVEL", logging.INFO),
+    format=os.getenv("LOGGER_FORMAT", LOGGER_FORMAT)
 )
-
-
-
 
 app = FastAPI(title="RIDE Console API", version="0.0.1")
 
-
-
+# API routers
 app.include_router(config.router, prefix="/api")
 app.include_router(health.router, prefix="/api")
 app.include_router(recon.router, prefix="/api")
 app.include_router(ftp.router, prefix="/api")
 app.include_router(errors.router, prefix="/api")
 
-app.mount("/assets", StaticFiles(directory="app/static_content/assets",check_dir=False), name="assets")
+# Mount static content
+app.mount("/assets", StaticFiles(directory="app/static_content/assets", check_dir=False), name="assets")
 app.mount("/static", StaticFiles(directory="app/static_content", check_dir=False), name="static")
 
+
+@app.get("/api", include_in_schema=False)
+async def read_root():
+    return {"message": "RIDE Console API Running"}
 
 
 @app.get("/{full_path:path}", include_in_schema=False)
 async def spa_router(request: Request, full_path: str):
-    if request.url.path.startswith("/api"):
-        return {"message": "RIDE Console API Running"}
-
-    index_path = "app/static_content/index.html"
-    if os.path.exists(index_path):
-        return FileResponse(index_path)
-    return {"error": "index.html not found"}
-
-
-@app.get("/api")
-def read_root():
-    return {"message": "RIDE Console API Running"}
-
-print(os.path.join(os.path.dirname(__file__), "static_content"))
-static_content_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "static_content"))
-app.mount("/", StaticFiles(directory=static_content_path, html=True, follow_symlink=True), name="static")
-
-@app.exception_handler(404)
-async def custom_404_handler(request, __):
+    # If the path looks like an API call, return 404 JSON
     if request.url.path.startswith("/api"):
         return JSONResponse(status_code=404, content={"detail": "Not found"})
-    return RedirectResponse(f"/?redirect={request.url.path}&{request.url.query}" if request.url.query else f"/?redirect={request.url.path}")
+
+   
+    index_path = "app/static_content/index.html"
+    if os.path.exists(index_path):
+        return FileResponse(index_path, media_type="text/html")
+
+    return JSONResponse(status_code=404, content={"error": "index.html not found"})
 
 
+@app.exception_handler(404)
+async def custom_404_handler(request: Request, __):
+    # Return JSON for missing API routes
+    if request.url.path.startswith("/api"):
+        return JSONResponse(status_code=404, content={"detail": "Not found"})
 
+    
+    redirect_url = f"/?redirect={request.url.path}"
+    if request.url.query:
+        redirect_url += f"&{request.url.query}"
 
+    return RedirectResponse(redirect_url)
