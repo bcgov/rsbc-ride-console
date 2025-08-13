@@ -3,6 +3,7 @@ import AuthService from './authService';
 
 const ReconService = {
   async fetchEvents(type: string) {
+    
     const accessToken = await new AuthService().getUserToken();
     return axios.get(`/api/${type}`, {
       headers: {

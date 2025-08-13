@@ -1,3 +1,12 @@
+<script setup lang="ts">
+defineProps({
+  event: {
+    type: Object ,
+    required: true
+  }
+});
+defineEmits(['select']);
+</script>
 
 <template>
   <div class="event-list-item" @click="$emit('select', event)">
@@ -10,12 +19,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
-defineProps({
-  event: Object
-});
-defineEmits(['select']);
-</script>
+
 
 <style scoped>
 .event-list-item {

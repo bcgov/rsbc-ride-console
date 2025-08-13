@@ -1,13 +1,26 @@
 import { ref, computed } from 'vue';
+import type { Ref } from 'vue'; 
 import ReconService from '@/services/reconService';
 import { StorageKey } from '@/utils/constants';
 
 const storageType = window.sessionStorage;
+interface ReconciliationEvent {
+  id?: string;
+  _id?: string;
+  ticketNo?: string;
+  eventid?: string;
+  eventId?: string;
+  errorReason?: string;
+  eventType?: string;
+  datasource?: string;
+  payloadstr?: string;
+}
 
 export function useReconciliation() {
-  const events = ref([]);
-  const selectedEvent = ref(null);
-  const apiError = ref(null);
+  const events = ref<ReconciliationEvent[]>([]);
+  const selectedEvent = ref<ReconciliationEvent | null>(null);
+  const apiError: Ref<string | null> = ref(null);
+
 
   const fetchEvents = async (card: any) => {
     const type = card.type;
@@ -46,9 +59,9 @@ export function useReconciliation() {
   };
 
   const refreshData = async (card: any) => {
-  const key = `${StorageKey.EVENTS}_${card.type}`;
-  storageType.removeItem(key);
-  await fetchEvents(card);
+    const key = `${StorageKey.EVENTS}_${card.type}`;
+    storageType.removeItem(key);
+    await fetchEvents(card);
   };
 
   const parsedPayload = computed(() => {

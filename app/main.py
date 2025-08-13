@@ -4,6 +4,10 @@ from fastapi.concurrency import asynccontextmanager
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse, RedirectResponse
 
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+import os
+
 import uvicorn
 
 from app.routes import config
@@ -27,11 +31,23 @@ logging.basicConfig(
 app = FastAPI(title="RIDE Console API", version="0.0.1")
 
 
+
 app.include_router(config.router, prefix="/api")
 app.include_router(health.router, prefix="/api")
 app.include_router(recon.router, prefix="/api")
 app.include_router(ftp.router, prefix="/api")
 app.include_router(errors.router, prefix="/api")
+
+app.mount("/assets", StaticFiles(directory="app/static_content/assets"), name="assets")
+app.mount("/static", StaticFiles(directory="app/static_content"), name="static")
+
+# Serve index.html for Vue SPA routes
+@app.get("/{full_path:path}")
+async def spa_router(full_path: str):
+    index_path = "app/static_content/index.html"
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
+    return {"error": "index.html not found"}
 
 @app.get("/api")
 def read_root():

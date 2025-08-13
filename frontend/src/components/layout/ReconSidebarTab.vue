@@ -1,3 +1,13 @@
+<script setup lang="ts">
+defineProps({
+  tab: {
+    type: Object ,
+    required: true
+  }
+});
+
+defineEmits(['click']);
+</script>
 
 <template>
   <div
@@ -10,18 +20,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
-defineProps({
-  tab: Object
-});
-
-defineEmits(['click']);
-</script>
-
 <style scoped>
-
-
-
 .sidebar-tab {
   display: flex;
   justify-content: space-between;

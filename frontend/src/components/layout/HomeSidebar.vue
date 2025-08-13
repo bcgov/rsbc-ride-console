@@ -1,3 +1,12 @@
+
+<script setup lang="ts">
+defineProps<{
+  tabs: Array<{ name: string; label: string; icon: string }>;
+  activeTab: string;
+}>();
+
+defineEmits(['tab-click']);
+</script>
 <template>
   <div class="sidebar">
     <div
@@ -14,14 +23,6 @@
   </div>
 </template>
 
-<script setup lang="ts">
-defineProps<{
-  tabs: Array<{ name: string; label: string; icon: string }>;
-  activeTab: string;
-}>();
-
-defineEmits(['tab-click']);
-</script>
 
 <style scoped>
 .sidebar {
