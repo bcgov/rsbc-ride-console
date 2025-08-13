@@ -38,8 +38,8 @@ app.include_router(recon.router, prefix="/api")
 app.include_router(ftp.router, prefix="/api")
 app.include_router(errors.router, prefix="/api")
 
-app.mount("/assets", StaticFiles(directory="app/static_content/assets"), name="assets")
-app.mount("/static", StaticFiles(directory="app/static_content"), name="static")
+app.mount("/assets", StaticFiles(directory="app/static_content/assets",check_dir=False), name="assets")
+app.mount("/static", StaticFiles(directory="app/static_content", check_dir=False), name="static")
 
 # Serve index.html for Vue SPA routes
 @app.get("/{full_path:path}")
