@@ -1,9 +1,10 @@
 import { ref, computed } from 'vue';
-import type { Ref } from 'vue'; 
+import type { Ref } from 'vue';
 import ReconService from '@/services/reconService';
 import { StorageKey } from '@/utils/constants';
 
 const storageType = window.sessionStorage;
+
 interface ReconciliationEvent {
   id?: string;
   _id?: string;
@@ -21,7 +22,7 @@ export function useReconciliation() {
   const selectedEvent = ref<ReconciliationEvent | null>(null);
   const apiError: Ref<string | null> = ref(null);
 
-
+  // 🟢 Fetch events from API (with caching)
   const fetchEvents = async (card: any) => {
     const type = card.type;
     const cacheKey = `${StorageKey.EVENTS}_${type}`;
@@ -51,6 +52,17 @@ export function useReconciliation() {
     } catch (err: any) {
       console.error('Error:', err);
       apiError.value = `Error calling API: ${err.response?.statusText || 'Unknown Error'}`;
+    }
+  };
+
+  // 🟢 Fetch count for a given card type
+  const fetchEventCount = async (card: any): Promise<number> => {
+    try {
+      const response = await ReconService.fetchCount(card.type);
+      return response.data.count || 0;
+    } catch (err: any) {
+      console.error('Error fetching count:', err);
+      return 0;
     }
   };
 
@@ -85,7 +97,9 @@ export function useReconciliation() {
     selectedEvent,
     apiError,
     fetchEvents,
+    fetchEventCount, // <-- 🟢 expose count fetching
     selectEvent,
+    refreshData,
     parsedPayload,
   };
 }

@@ -59,6 +59,7 @@ dockerfile.backend
 dockerfile.frontend
 frontend/dockerfile.frontend
 ftp-upload/
+vite.config.ts.local
 .vscode/
 
 

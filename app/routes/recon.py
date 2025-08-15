@@ -14,12 +14,12 @@ class ResetRequest(BaseModel):
     object_id: str
 
 
-
-
-
-
 router = APIRouter()
 logger = logging.getLogger(__name__)
+
+async def get_collection_count(collection_name: str, query: dict = {}):
+    count = await recon_db[collection_name].count_documents(query)
+    return {"count": count}
 
 
 
@@ -328,4 +328,42 @@ async def delete_staging_count(object_id: str = Path(..., description="MongoDB O
 )
 async def delete_all_staging_count():
     return await delete_all_documents("mainstaging")
+
+
+@router.get(
+    "/retry-exceptions/count",
+    tags=["recon"],
+    summary="Get count of retry exceptions"
+)
+async def get_retry_exceptions_count():
+    query = {"recon_count": {"$gt": 10}}
+    return await get_collection_count("mainstaging", query)
+
+
+@router.get(
+    "/error_count/count",
+    tags=["recon"],
+    summary="Get count of error count events"
+)
+async def get_error_count_count():
+    return await get_collection_count("errortable")
+
+
+@router.get(
+    "/error_staging/count",
+    tags=["recon"],
+    summary="Get count of error staging events"
+)
+async def get_error_staging_count():
+    return await get_collection_count("errorstaging")
+
+
+@router.get(
+    "/staging_count/count",
+    tags=["recon"],
+    summary="Get count of staging count events"
+)
+async def get_staging_count_count():
+    return await get_collection_count("mainstaging")
+
 

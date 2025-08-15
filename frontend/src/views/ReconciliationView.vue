@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-
+import { ref, computed, onMounted } from 'vue';
 import ReconService from '@/services/reconService';
 import EventListItem from '@/components/layout/EventListItem.vue';
 import SidebarTab from '@/components/layout/ReconSidebarTab.vue';
@@ -15,7 +14,7 @@ const filters = ref({
   datasource: '',
 });
 
-// Tabs
+// Tabs (cards)
 const cards = ref([
   { title: 'Retry Exceptions', type: 'retry-exceptions', class: 'red', count: 0 },
   { title: 'Error Count', type: 'error_count', class: 'darkred', count: 0 },
@@ -23,16 +22,25 @@ const cards = ref([
   { title: 'Staging Count', type: 'staging_count', class: 'green', count: 0 },
 ]);
 
+// Composable logic
 const {
   events,
   selectedEvent,
   apiError,
   fetchEvents,
+  fetchEventCount,
   selectEvent,
-  parsedPayload
+  parsedPayload,
 } = useReconciliation();
 
+// Fetch counts for each card on mount
+onMounted(async () => {
+  for (const card of cards.value) {
+    card.count = await fetchEventCount(card);
+  }
+});
 
+// Filtered events based on search filters
 const filteredEvents = computed(() => {
   return events.value.filter(event => {
     const matches = (fieldValue: any, filterValue: string) => {
@@ -63,18 +71,19 @@ const filteredEvents = computed(() => {
       <input v-model="filters.datasource" placeholder="Data Source" />
     </div>
 
-    <!-- Three-Column Layout -->
+    <!-- Main Layout -->
     <div class="main-container">
-      <!-- Left: Sidebar -->
+      <!-- Sidebar -->
       <div class="sidebar">
-      <SidebarTab
-        v-for="card in cards"
-        :key="card.title"
-        :tab="card"
-        @click="fetchEvents"
-      />
-    </div>
-      <!-- Middle: Event List -->
+        <SidebarTab
+          v-for="card in cards"
+          :key="card.title"
+          :tab="card"
+          @click="fetchEvents(card)"
+        />
+      </div>
+
+      <!-- Event List -->
       <div class="event-list-container">
         <div v-if="apiError" class="error-message">
           <p>{{ apiError }}</p>
@@ -82,14 +91,13 @@ const filteredEvents = computed(() => {
 
         <EventListItem
           v-for="event in filteredEvents"
-          :key="event.id"
+          :key="event._id"
           :event="event"
           @select="selectEvent"
         />
-
       </div>
 
-      <!-- Right: Event Detail -->
+      <!-- Event Detail -->
       <div class="event-details" v-if="selectedEvent">
         <h3>{{ selectedEvent.errorReason || '< Error Reason Unknown>' }}</h3>
         <p>{{ selectedEvent.eventType }}</p>
@@ -141,8 +149,6 @@ const filteredEvents = computed(() => {
   padding: 10px;
 }
 
-
-
 .event-list-container {
   width: 300px;
   background-color: #fdf7ff;
@@ -150,7 +156,6 @@ const filteredEvents = computed(() => {
   overflow-y: auto;
   padding: 10px;
 }
-
 
 .event-details {
   flex: 1;
