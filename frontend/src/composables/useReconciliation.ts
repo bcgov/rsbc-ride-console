@@ -1,5 +1,5 @@
-import { ref, computed } from 'vue';
-import type { Ref } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import type { Ref } from 'vue'; 
 import ReconService from '@/services/reconService';
 import { StorageKey } from '@/utils/constants';
 
@@ -22,7 +22,9 @@ export function useReconciliation() {
   const selectedEvent = ref<ReconciliationEvent | null>(null);
   const apiError: Ref<string | null> = ref(null);
 
-  // 🟢 Fetch events from API (with caching)
+  // Counts cache
+  const counts = ref<Record<string, number>>({});
+
   const fetchEvents = async (card: any) => {
     const type = card.type;
     const cacheKey = `${StorageKey.EVENTS}_${type}`;
@@ -49,19 +51,37 @@ export function useReconciliation() {
       apiError.value = null;
 
       storageType.setItem(cacheKey, JSON.stringify(data)); // cache result
+
+      
+      const countCacheKey = `${StorageKey.EVENT_COUNT}_${type}`;
+      storageType.removeItem(countCacheKey);
+      // Refresh count after event fetch
+      await fetchEventCount(card);
     } catch (err: any) {
-      console.error('Error:', err);
+      console.error('Error fetching events:', err);
       apiError.value = `Error calling API: ${err.response?.statusText || 'Unknown Error'}`;
     }
   };
 
-  // 🟢 Fetch count for a given card type
   const fetchEventCount = async (card: any): Promise<number> => {
+    const type = card.type;
+    const countCacheKey = `${StorageKey.EVENT_COUNT}_${type}`;
+    const cachedCount = storageType.getItem(countCacheKey);
+
+    if (cachedCount !== null) {
+      counts.value[type] = parseInt(cachedCount, 10);
+      return counts.value[type];
+    }
+
     try {
-      const response = await ReconService.fetchCount(card.type);
-      return response.data.count || 0;
+      const response = await ReconService.fetchCount(type);
+      const count = response.data.count ?? 0;
+      counts.value[type] = count;
+      storageType.setItem(countCacheKey, count.toString()); // cache count
+      return count;
     } catch (err: any) {
       console.error('Error fetching count:', err);
+      counts.value[type] = 0;
       return 0;
     }
   };
@@ -71,9 +91,13 @@ export function useReconciliation() {
   };
 
   const refreshData = async (card: any) => {
-    const key = `${StorageKey.EVENTS}_${card.type}`;
-    storageType.removeItem(key);
+    const eventCacheKey = `${StorageKey.EVENTS}_${card.type}`;
+    const countCacheKey = `${StorageKey.EVENT_COUNT}_${card.type}`;
+
+    storageType.removeItem(eventCacheKey);
+    storageType.removeItem(countCacheKey);
     await fetchEvents(card);
+    await fetchEventCount(card);
   };
 
   const parsedPayload = computed(() => {
@@ -96,8 +120,9 @@ export function useReconciliation() {
     events,
     selectedEvent,
     apiError,
+    counts,
     fetchEvents,
-    fetchEventCount, // <-- 🟢 expose count fetching
+    fetchEventCount,
     selectEvent,
     refreshData,
     parsedPayload,
