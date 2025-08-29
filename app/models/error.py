@@ -19,10 +19,11 @@ class Error(BaseModel):
     #errorReason: Optional[str] = None
     errorCategoryCd: str  
     errorSeverityLevelCd: str
+    apipath: Optional[str] = None
     ticketNo: str
     detailsTxt: str
     serviceNm: str
-    _class: str
+    class_: str = Field(alias="_class", serialization_alias="_class")
     fixed: Optional[bool] = Field(default=False, description="Mark if the error is fixed")
     under_analysis: Optional[bool] = Field(default=False, description="Mark if the error is under analysis")
     comments: Optional[List[ErrorComment]] = None

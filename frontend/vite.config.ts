@@ -29,9 +29,20 @@ export default defineConfig({
     }
   },
   server: {
+    watch: {
+      usePolling: true,
+      interval: 100
+    },
+  
     port: 3000,
+   
     proxy: {
-      '/api': proxyObject
+      '/api':  {
+        target: 'http://host.docker.internal:3000', // Points to FastAPI
+        changeOrigin: true,
+        secure: false
+      },
+     
     }
   },
   test: {

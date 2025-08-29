@@ -446,3 +446,31 @@ async def rename_archive_file(
             logger.error(f"Error renaming archive file: {e}")
             raise HTTPException(status_code=500, detail="Failed to rename file")
 
+
+@router.get(
+    "/recon_ftp/count",
+    tags=["ftp"],
+    summary="Get count of recon FTP files"
+)
+async def count_recon_ftp_files():
+    try:
+        files = await list_recon_files()
+        return {"count": len(files)}
+    except Exception as e:
+        logger.error(f"Error counting recon files: {e}")
+        raise HTTPException(status_code=500, detail="Failed to count recon files")
+
+
+@router.get(
+    "/recon_ftp_archives/count",
+    tags=["ftp"],
+    summary="Get count of recon FTP archive files"
+)
+async def count_recon_ftp_archive_files():
+    try:
+        files = await list_archive_files()
+        return {"count": len(files)}
+    except Exception as e:
+        logger.error(f"Error counting archive files: {e}")
+        raise HTTPException(status_code=500, detail="Failed to count archive files")
+

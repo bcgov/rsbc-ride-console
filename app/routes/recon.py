@@ -176,6 +176,33 @@ async def reset_all_retry_exceptions():
     return await reset_all_field("mainstaging", "recon_count")
 
 
+
+
+@router.post(
+    "/error_count/reset-all",
+    tags=["recon"],
+    summary="Reset recon_count to 0 for all documents in errortable"
+)
+async def reset_all_error_count():
+    return await reset_all_field("errortable", "retry_count")
+
+
+@router.post(
+    "/error_staging/reset-all",
+    tags=["recon"],
+    summary="Reset recon_count to 0 for all documents in errorstaging"
+)
+async def reset_all_error_staging():
+    return await reset_all_field("errorstaging", "retry_count")
+
+@router.post(
+    "/staging_count/reset-all",
+    tags=["recon"],
+    summary="Reset recon_count to 0 for all documents in mainstaging"
+)
+async def reset_all_retry_exceptions():
+    return await reset_all_field("mainstaging", "recon_count")
+
 #  Error Count
 @router.get(
     "/error_count",
@@ -243,13 +270,6 @@ async def reset_retry_count(request: ResetRequest):
         logger.error(f"Failed to reset retry_count: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
-@router.post(
-    "/error_count/reset-all",
-    tags=["recon"],
-    summary="Reset retry_count to 0 for all documents in errortable"
-)
-async def reset_all_retry_count_records():
-    return await reset_all_field("errortable", "retry_count")
 
 
 #  Error Staging
@@ -272,6 +292,34 @@ async def get_error_staging():
     docs = await recon_db["errorstaging"].find().to_list(length=100)
     return get_events(docs)
 
+@router.post(
+    "/error_staging/reset",
+    tags=["recon"],
+    summary="Reset retry_count to 0 for a given object ID",
+    response_description="Retry count reset result"
+)
+async def reset_retry_count_staging(request: ResetRequest):
+    try:
+        object_id = ObjectId(request.object_id)
+    except InvalidId:
+        raise HTTPException(status_code=400, detail="Invalid ObjectId format")
+
+    try:
+        result = await recon_db["errorstaging"].update_one(
+            {"_id": object_id},
+            {"$set": {"retry_count": 0}}
+        )
+
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Object not found")
+
+        return {"message": "Retry count reset successfully", "object_id": request.object_id}
+
+    except HTTPException:
+        raise  
+    except Exception as e:
+        logger.error(f"Failed to reset retry_count: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 @router.delete(
     "/error_staging/{object_id}",
