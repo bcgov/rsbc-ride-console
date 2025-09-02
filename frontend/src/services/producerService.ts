@@ -15,7 +15,7 @@ const withAuthHeaders = async () => {
 };
 
 const ProducerService = {
-  send: async (apipath: string, payload: object) => {
+  send: async (apipath: string, payload: Record<string, any>) => {
     const config = await withAuthHeaders();
     return axios.post(
       '/api/producer/send', 

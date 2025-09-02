@@ -1,9 +1,10 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Any
 import os
 import httpx
 import logging
+from app.auth.auth import authenticate_user
 
 router = APIRouter()
 logger = logging.getLogger(__name__)

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query, HTTPException
+from fastapi import APIRouter, Query, HTTPException, Depends
 from bson import ObjectId
 from typing import List, Optional
 from app.models.error import Error
@@ -7,6 +7,7 @@ from app.util.common import clean_mongo_doc
 from pydantic import BaseModel
 from datetime import datetime
 import logging
+from app.auth.auth import authenticate_user
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -25,7 +26,8 @@ def parse_errors(docs):
 )
 async def get_errors(
     fixed: Optional[bool] = Query(default=None),
-    under_analysis: Optional[bool] = Query(default=None)
+    under_analysis: Optional[bool] = Query(default=None),
+    user: dict = Depends(authenticate_user)
 ):
     query = {}
 
@@ -47,12 +49,12 @@ async def get_errors(
                 {"under_analysis": {"$exists": False}}
             ]
 
-    docs = await ride_services_db["errors"].find(query).to_list(length=100)
+    docs = await ride_services_db["errors"].find(query).to_list()
     return parse_errors(docs)
 
 #  Update individual record: set fixed = True, under_analysis = False
 @router.post("/set-fixed", tags=["error"])
-async def set_fixed_true(request: ObjectIdRequest):
+async def set_fixed_true(request: ObjectIdRequest, user: dict = Depends(authenticate_user)):
     try:
         obj_id = ObjectId(request.object_id)
     except Exception:
@@ -70,7 +72,7 @@ async def set_fixed_true(request: ObjectIdRequest):
 
 #  Update individual record: set under_analysis = True, fixed = False
 @router.post("/set-under-analysis", tags=["error"])
-async def set_under_analysis_true(request: ObjectIdRequest):
+async def set_under_analysis_true(request: ObjectIdRequest, user: dict = Depends(authenticate_user)):
     try:
         obj_id = ObjectId(request.object_id)
     except Exception:
@@ -88,7 +90,7 @@ async def set_under_analysis_true(request: ObjectIdRequest):
 
 #  Set ALL under_analysis = True, fixed = False
 @router.post("/set-all-under-analysis", tags=["error"])
-async def set_all_under_analysis_true():
+async def set_all_under_analysis_true(user: dict = Depends(authenticate_user)):
     result = await ride_services_db["errors"].update_many(
         {},
         {"$set": {"under_analysis": True, "fixed": False}}
@@ -101,7 +103,7 @@ async def set_all_under_analysis_true():
 
 #  Set ALL fixed = True, under_analysis = False
 @router.post("/set-all-fixed", tags=["error"])
-async def set_all_fixed_true():
+async def set_all_fixed_true(user: dict = Depends(authenticate_user)):
     result = await ride_services_db["errors"].update_many(
         {},
         {"$set": {"fixed": True, "under_analysis": False}}
@@ -113,38 +115,38 @@ async def set_all_fixed_true():
     }
 
 @router.get("/fixed", response_model=List[Error], tags=["error"])
-async def get_fixed_errors():
-    docs = await ride_services_db["errors"].find({"fixed": True}).to_list(length=100)
+async def get_fixed_errors(user: dict = Depends(authenticate_user)):
+    docs = await ride_services_db["errors"].find({"fixed": True}).to_list()
     return parse_errors(docs)
 
 @router.get("/under-analysis", response_model=List[Error], tags=["error"])
-async def get_under_analysis_errors():
-    docs = await ride_services_db["errors"].find({"under_analysis": True}).to_list(length=100)
+async def get_under_analysis_errors(user: dict = Depends(authenticate_user)):
+    docs = await ride_services_db["errors"].find({"under_analysis": True}).to_list()
     return parse_errors(docs)
 
 @router.get("/new", response_model=List[Error], tags=["error"])
-async def get_new_errors():
+async def get_new_errors(user: dict = Depends(authenticate_user)):
     query = {
         "$and": [
             {"$or": [{"fixed": False}, {"fixed": {"$exists": False}}]},
             {"$or": [{"under_analysis": False}, {"under_analysis": {"$exists": False}}]}
         ]
     }
-    docs = await ride_services_db["errors"].find(query).to_list(length=100)
+    docs = await ride_services_db["errors"].find(query).to_list()
     return parse_errors(docs)
 
 @router.get("/fixed/count", tags=["error"])
-async def count_fixed_errors():
+async def count_fixed_errors(user: dict = Depends(authenticate_user)):
     count = await ride_services_db["errors"].count_documents({"fixed": True})
     return {"count": count}
 
 @router.get("/under-analysis/count", tags=["error"])
-async def count_under_analysis_errors():
+async def count_under_analysis_errors(user: dict = Depends(authenticate_user)):
     count = await ride_services_db["errors"].count_documents({"under_analysis": True})
     return {"count": count}
 
 @router.get("/new/count", tags=["error"])
-async def count_new_errors():
+async def count_new_errors(user: dict = Depends(authenticate_user)):
     query = {
         "$and": [
             {"$or": [{"fixed": False}, {"fixed": {"$exists": False}}]},

@@ -51,7 +51,7 @@ onMounted(async () => {
   <div class="home-tab-view">
     <h2 class="grafana-title">Services Status</h2>
     <div class="status-bar" v-if="grafanaIframeUrl">
-      <iframe :src="grafanaIframeUrl" frameborder="0" allowfullscreen></iframe>
+      <iframe :src="grafanaIframeUrl" frameborder="0" allowfullscreen/>
     </div>
 
     <div class="metrics-wrapper">

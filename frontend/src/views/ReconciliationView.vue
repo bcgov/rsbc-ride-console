@@ -110,7 +110,7 @@ async function refreshAllCounts() {
 const resetRetryCount = async () => {
   if (!selectedRecord.value) return;
   try {
-    await resetById(activeCard.value.type, selectedRecord.value._id);
+    await resetById(activeCard.value.type ?? '', selectedRecord.value._id ?? '');
     refreshAllData();
   } catch (e) {
     console.error('Error resetting retry count', e);
@@ -120,13 +120,13 @@ const resetRetryCount = async () => {
 const resubmitToProducer = async () => {
   if (!selectedRecord.value || !parsedPayload.value) return;
 
-  const apiPath = selectedRecord.value.apipath;
+  const apiPath = selectedRecord.value.apipath ?? '';
   if (!apiPath) {
     alert('No API path specified for this record.');
     return;
   }
 
-  const confirmResubmit = window.confirm("Are you sure you want to resubmit this event to the producer?");
+  const confirmResubmit = window.confirm('Are you sure you want to resubmit this event to the producer?');
   if (!confirmResubmit) return;
 
   try {
@@ -136,9 +136,17 @@ const resubmitToProducer = async () => {
         payloadToSend = JSON.parse(payloadToSend);
       } catch (e) {
         console.error('Failed to parse payload string', e);
-        throw e;
+        alert('Invalid JSON format in payload');
+        return;
       }
     }
+
+    // Ensure payload is an object and not null
+    if (!payloadToSend || typeof payloadToSend !== 'object') {
+      alert('Payload must be a valid object to send.');
+      return;
+    }
+
     await ProducerService.send(apiPath, payloadToSend);
     alert('Payload successfully sent to producer.');
   } catch (error) {
@@ -147,20 +155,6 @@ const resubmitToProducer = async () => {
   }
 };
 
-function parsePayloadStr(payloadstr: string | undefined): string {
-  if (!payloadstr) return '{}';
-
-  try {
-    let result = JSON.parse(payloadstr);
-    if (typeof result === 'string') {
-      result = JSON.parse(result);
-    }
-    return JSON.stringify(result, null, 2);
-  } catch (err) {
-    console.error('Payload parse error:', err);
-    return payloadstr || '{}';
-  }
-}
 
 const resubmitAllToProducer = async () => {
   if (!records.value.length) {
@@ -173,18 +167,37 @@ const resubmitAllToProducer = async () => {
 
   for (const record of records.value) {
     try {
-      const apiPath = record.apipath;
+      const apiPath = record.apipath ?? '';
       if (!apiPath) {
         console.warn(`Skipping record ${record._id} — no API path.`);
         continue;
       }
-      const payloadStr = parsePayloadStr(record.payloadstr);   
-      const payloadToSend = JSON.parse(payloadStr);
+
+      
+      let payloadToSend: any = record.payload ?? parsedPayload.value; // fallback to parsedPayload if no per-record payload
+      
+      
+      if (typeof payloadToSend === 'string') {
+        try {
+          payloadToSend = JSON.parse(payloadToSend);
+        } catch (e) {
+          console.error(`Failed to parse payload for record ${record._id}`, e);
+          continue; // skip this record and continue with others
+        }
+      }
+
+      
+      if (!payloadToSend || typeof payloadToSend !== 'object') {
+        console.warn(`Skipping record ${record._id} — invalid payload`);
+        continue;
+      }
+
       await ProducerService.send(apiPath, payloadToSend);
     } catch (error) {
       console.error(`Failed to resubmit record ${record._id}`, error);
     }
   }
+
   alert('Finished resubmitting all events.');
 };
 
@@ -197,12 +210,12 @@ const resetAllHandler = async () => {
 const retryExceptionsCount = computed(() => {
   const card = cards.value.find(c => c.type === 'retry-exceptions');
   return card ? card.count : 0;
-})
+});
 
 const refreshAllData = async () => {
   // Refresh counts for all tabs
   for (const card of cards.value) {
-    storageType.removeItem(`${StorageKey.EVENT_COUNT}_error_${card.type}`);
+    storageType.removeItem(`${StorageKey.EVENT_COUNT}_error_${card.type ?? 'unknown'}`);
     card.count = await fetchRecordCount(card);
   }
 
@@ -227,17 +240,17 @@ const toggleDetailMenu = () => {
 
 const deleteSelectedEvent = async () => {
   if (!selectedRecord.value) return;
-  const confirmDelete = window.confirm("Are you sure you want to delete this event?");
+  const confirmDelete = window.confirm('Are you sure you want to delete this event?');
   if (!confirmDelete) return;
   try {
-    await deleteEventById(activeCard.value.type, selectedRecord.value._id);
-    alert("Event deleted successfully.");
+    await deleteEventById(activeCard.value.type  ?? '', selectedRecord.value._id  ?? '');
+    alert('Event deleted successfully.');
     selectedRecord.value = null; // clear selection after deletion
     refreshAllData();
     
   } catch (error) {
-    console.error("Failed to delete event:", error);
-    alert("Failed to delete event.");
+    console.error('Failed to delete event:', error);
+    alert('Failed to delete event.');
   }
 };
 
@@ -262,7 +275,7 @@ const deleteSelectedEvent = async () => {
 
       <!-- 3-dot menu -->
       <div class="menu-button">
-        <span class="material-icons" @click="toggleMenu">more_vert</span>
+        <span class="material-icons" @click="toggleMenu" >more_vert</span>
         <div v-if="menuOpen" class="menu">
           <button  @click="resubmitAllToProducer">  Resubmit all to Producer</button>
 
@@ -337,8 +350,8 @@ const deleteSelectedEvent = async () => {
           <pre>{{ parsedPayload }}</pre>
         </div>
 
-        <div class="record-actions">
-        </div>
+        <div class="record-actions"/>
+      
       </div>
     </div>
   </div>
@@ -481,5 +494,17 @@ const deleteSelectedEvent = async () => {
 .detail-menu button:disabled {
   color: #aaa;
   cursor: not-allowed;
+}
+.global-menu-container {
+  position: relative;
+}
+.menu-button {
+  position: relative;
+  margin-left: 100px; 
+}
+.top-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 </style>

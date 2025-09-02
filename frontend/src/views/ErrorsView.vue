@@ -6,7 +6,7 @@ import { useErrorUpdater } from '@/composables/useErrorUpdater';
 import { StorageKey } from '@/utils/constants';
 
 import FetchRecordsService from '@/services/fetchRecordsService';
-;
+
 
 const service = FetchRecordsService;
 const storageType = window.sessionStorage;
@@ -69,12 +69,12 @@ const refreshAllData = async () => {
 
 
 onMounted(async () => {
-    for (const card of cards.value) {
+  for (const card of cards.value) {
     card.count = await fetchRecordCount(card);
   }
   await fetchRecords(activeCard.value);
-  
 });
+
 
 const filteredRecords = computed(() => {
   return records.value.filter(record => {
@@ -135,7 +135,7 @@ const handleSetUnderAnalysis = async (recordId: string) => {
 const handleSetAllFixed = async () => {
   if (!activeCard.value) return;
   const updatePromises = filteredRecords.value.map(record =>
-    setFixedById(activeCard.value.type, record._id)
+    setFixedById(activeCard.value.type, record._id || '')
   );
   await Promise.all(updatePromises);
   await refreshAllData();
@@ -145,7 +145,7 @@ const handleSetAllFixed = async () => {
 const handleSetAllUnderAnalysis = async () => {
   if (!activeCard.value) return;
   const updatePromises = filteredRecords.value.map(record =>
-    setUnderAnalysisById(activeCard.value.type, record._id)
+    setUnderAnalysisById(activeCard.value.type, record._id || '')
   );
   await Promise.all(updatePromises);
   await refreshAllData();
@@ -250,7 +250,7 @@ const isUnderAnalysisTab = computed(() => activeCard.value.type === 'under-analy
         <!-- Individual record menu positioned top-right -->
         <div
           class="record-menu-container"
-          @click.stop="openRecordMenu(selectedRecord._id)"
+          @click.stop="openRecordMenu(selectedRecord._id || '')"
           style="position: absolute; top: 10px; right: 10px;"
         >
           <button class="menu-trigger" aria-label="More options">⋮</button>

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { ConfigService } from './index';
 
 const GrafanaService = {
   
@@ -7,11 +8,15 @@ const GrafanaService = {
    * 
    */
   async getDashboardEmbedUrl(uid: string, from?: number, to?: number): Promise<string> {
-    const grafanaUrl = import.meta.env.VITE_GRAFANA_URL;
+    
+    const config = new ConfigService().getConfig();
 
-    if (!grafanaUrl) {
+    if (!config?.grafanaURL) {
       throw new Error('Missing Grafana URL configuration.');
     }
+    const grafanaUrl = config.grafanaURL;
+
+
 
     try {
      

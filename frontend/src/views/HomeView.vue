@@ -2,7 +2,8 @@
 import { ref } from 'vue';
 import ReconciliationView from './ReconciliationView.vue';
 import ErrorsView from './ErrorsView.vue';
-import FTPView from './FTPView.vue';
+import FtpView from './FtpView.vue';
+
 import HomeTabView  from './HomeTabView.vue';
 import HomeSidebar from '@/components/layout/HomeSidebar.vue';
 import { storeToRefs } from 'pinia';
@@ -38,7 +39,7 @@ function setActiveTab(tabName: string) {
     <div class="content">
       <ReconciliationView v-if="activeTab === 'Reconciliation'" />
       <HomeTabView v-if="activeTab === 'Home'" />
-      <FTPView v-if="activeTab === 'PrimeFTP'" />
+      <FtpView v-if="activeTab === 'PrimeFTP'" />
       <ErrorsView v-if="activeTab === 'Errors'" />
       <div v-if="activeTab === 'Dashboards'">
         <h2>Dashboard Content</h2>

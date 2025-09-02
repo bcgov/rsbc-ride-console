@@ -66,7 +66,7 @@ document.addEventListener('click', (e) => {
 
 const handleDownload = async (file: string) => {
   try {
-    const blob = await downloadFile(activeCard.value.type, file);
+    const blob = await downloadFile(activeCard.value.type  as 'recon_ftp' | 'recon_ftp_archives', file);
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -86,7 +86,7 @@ const handleRename = async (file: string) => {
   if (!newName || newName.trim() === '' || newName === file) return;
 
   try {
-    await renameFile(activeCard.value.type, file, newName);
+    await renameFile(activeCard.value.type  as 'recon_ftp' | 'recon_ftp_archives', file, newName);
     await fetchRecords(activeCard.value);
     refreshAllData();
   } catch (error) {
@@ -102,7 +102,8 @@ const handleDelete = async (file: string) => {
   if (!confirmDelete) return;
 
   try {
-    await deleteFile(activeCard.value.type, file);
+    await deleteFile(activeCard.value.type as 'recon_ftp' | 'recon_ftp_archives', file);
+
     await fetchRecords(activeCard.value);
     refreshAllData();
   } catch (error) {
@@ -178,15 +179,16 @@ const refreshAllData = async () => {
 
             <!-- 3-dot menu -->
             <div class="menu-wrapper" style="position: relative;">
-              <button
-                class="menu-trigger"
+             <span
+                class="material-icons menu-trigger"
                 @click.stop="toggleMenu(file)"
                 aria-label="Options"
+                style="cursor: pointer; user-select: none;"
               >
-                ⋮
-              </button>
+                more_vert
+              </span>
 
-              <div v-if="openMenu === file" class="menu-dropdown">
+              <div v-if="openMenu === String(file)" class="menu-dropdown">
                 <button class="menu-button" @click="handleDownload(file)">Download</button>
                 <button class="menu-button" @click="handleRename(file)">Rename</button>
                 <button class="menu-button" @click="handleDelete(file)">Delete</button>

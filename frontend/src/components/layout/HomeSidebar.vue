@@ -12,10 +12,13 @@ defineEmits(['tab-click']);
     <div
       v-for="tab in tabs"
       :key="tab.name"
-      @click="$emit('tab-click', tab.name)"
       :class="['sidebar-tab', { active: activeTab === tab.name }]"
+      @click="$emit('tab-click', tab.name)"
     >
-      <div class="icon-wrapper" :class="{ selected: activeTab === tab.name }">
+      <div
+       class="icon-wrapper"
+        :class="{ selected: activeTab === tab.name }"
+        >
         <span class="material-icons">{{ tab.icon }}</span>
       </div>
       <span class="label">{{ tab.label }}</span>

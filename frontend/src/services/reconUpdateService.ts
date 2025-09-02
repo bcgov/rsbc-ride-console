@@ -28,12 +28,12 @@ const ReconUpdateService = {
   },
 
 
-   deleteEventById: async (type: string, objectId: string) => {
+  deleteEventById: async (type: string, objectId: string) => {
     const config = await withAuthHeaders();
     return axios.delete(`/api/recon/${type}/${objectId}`, config);
   },
 
-   deleteAllEvents: async (type: string) => {
+  deleteAllEvents: async (type: string) => {
     const config = await withAuthHeaders();
     return axios.delete(`/api/recon/${type}`, config);
   },

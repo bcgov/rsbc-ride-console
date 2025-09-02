@@ -1,10 +1,9 @@
-import { ref, computed } from 'vue';
+import { ref, computed, shallowRef } from 'vue';
 import type { Ref } from 'vue';
 import FetchRecordsService from '@/services/fetchRecordsService';
 import { StorageKey } from '@/utils/constants';
 
 const storageType = window.sessionStorage;
-
 
 interface BaseRecord {
   _id?: string;
@@ -17,9 +16,13 @@ interface BaseRecord {
 
 type RecordType = 'reconciliation' | 'error' | 'ftp';
 
-export function useFetchRecordsManager(type: RecordType) {
-  const records = ref<BaseRecord[]>([]);
-  const selectedRecord = ref<BaseRecord | null>(null);
+type RecordData<T extends RecordType> = T extends 'ftp' ? string : BaseRecord;
+type RecordList<T extends RecordType> = T extends 'ftp' ? string[] : BaseRecord[];
+
+export function useFetchRecordsManager<T extends RecordType>(type: T) {
+  const records = ref<RecordList<T>>([] as RecordList<T>);
+  const selectedRecord = shallowRef<RecordData<T> | null>(null);
+
   const apiError: Ref<string | null> = ref(null);
   const counts = ref<Record<string, number>>({});
   const service = FetchRecordsService;
@@ -68,7 +71,6 @@ export function useFetchRecordsManager(type: RecordType) {
       const count = response.data.count ?? 0;
       counts.value[card.type] = count;
       storageType.setItem(countKey, count.toString());
-      console.log(count);
       return count;
     } catch (err: any) {
       console.error('Count fetch error:', err);
@@ -77,7 +79,7 @@ export function useFetchRecordsManager(type: RecordType) {
     }
   };
 
-  const selectRecord = (record: BaseRecord) => {
+  const selectRecord = (record: RecordData<T>) => {
     selectedRecord.value = record;
   };
 
@@ -91,15 +93,16 @@ export function useFetchRecordsManager(type: RecordType) {
 
   const parsedPayload = computed(() => {
     if (type !== 'reconciliation') return null;
-    if (!selectedRecord.value?.payloadstr) return '{}';
+    const rec = selectedRecord.value as BaseRecord | null;
+    if (!rec?.payloadstr) return '{}';
 
     try {
-      let result = JSON.parse(selectedRecord.value.payloadstr);
+      let result = JSON.parse(rec.payloadstr);
       if (typeof result === 'string') result = JSON.parse(result);
       return JSON.stringify(result, null, 2);
     } catch (err) {
       console.error('Payload parse error:', err);
-      return selectedRecord.value.payloadstr;
+      return rec.payloadstr;
     }
   });
 
