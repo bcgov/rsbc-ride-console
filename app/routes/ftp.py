@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query, HTTPException
+from fastapi import APIRouter, Query, HTTPException, Depends
 from typing import List
 from app.db.mongo import recon_db
 from app.ftp.ftputil import FTPUtil
@@ -10,6 +10,7 @@ from contextlib import asynccontextmanager
 import errno
 from fastapi.responses import StreamingResponse
 from io import BytesIO
+from app.auth.auth import authenticate_user
 
 # Holds the current connection (per async context)
 current_ftp_connection = contextvars.ContextVar("current_ftp_connection", default=None)
@@ -186,7 +187,7 @@ async def list_archive_files() -> List[str]:
         }
     }
 )
-async def get_recon_ftp():
+async def get_recon_ftp(user: dict = Depends(authenticate_user)):
     return await list_recon_files()
 
 
@@ -203,7 +204,7 @@ async def get_recon_ftp():
         }
     }
 )
-async def get_recon_ftp_archives():
+async def get_recon_ftp_archives(user: dict = Depends(authenticate_user)):
     return await list_archive_files()
 
 @router.get(
@@ -233,7 +234,7 @@ async def get_recon_ftp_both():
         500: {"description": "Internal server error"}
     }
 )
-async def delete_recon_file(filename: str = Query(..., description="File path relative to the recon FTP folder")):
+async def delete_recon_file(filename: str = Query(..., description="File path relative to the recon FTP folder"), user: dict = Depends(authenticate_user)):
     """
     Delete a file by filename inside the recon FTP folder.
     """
@@ -270,7 +271,7 @@ async def delete_recon_file(filename: str = Query(..., description="File path re
         500: {"description": "SFTP error occurred"}
     }
 )
-async def delete_file_from_archives(filename: str = Query(..., description="File path relative to the recon FTP folder")):
+async def delete_file_from_archives(filename: str = Query(..., description="File path relative to the recon FTP folder"), user: dict = Depends(authenticate_user)):
     folder = get_full_path(
         os.getenv('FTP_INSTANCE_FOLDER_NAME', 'dev').strip('/'),
         os.getenv('PRIMERECON_ARCHIVE_FOLDER', 'primerecon_archive').strip('/')
@@ -306,7 +307,7 @@ from io import BytesIO
         500: {"description": "SFTP error occurred"}
     }
 )
-async def download_recon_file(filename: str = Query(..., description="File path relative to the recon FTP folder")):
+async def download_recon_file(filename: str = Query(..., description="File path relative to the recon FTP folder"), user: dict = Depends(authenticate_user)):
     folder = get_full_path(
         os.getenv('FTP_INSTANCE_FOLDER_NAME', 'dev').strip('/'),
         os.getenv('PRIMERECON_FTP_FOLDER', 'primerecon').strip('/')
@@ -337,7 +338,7 @@ async def download_recon_file(filename: str = Query(..., description="File path 
         500: {"description": "SFTP error occurred"}
     }
 )
-async def download_archive_file(filename: str = Query(..., description="File path relative to the archive FTP folder")):
+async def download_archive_file(filename: str = Query(..., description="File path relative to the archive FTP folder"), user: dict = Depends(authenticate_user)):
     folder = get_full_path(
         os.getenv('FTP_INSTANCE_FOLDER_NAME', 'dev').strip('/'),
         os.getenv('PRIMERECON_ARCHIVE_FOLDER', 'primerecon_archive').strip('/')
@@ -372,7 +373,8 @@ async def download_archive_file(filename: str = Query(..., description="File pat
 )
 async def rename_recon_file(
     old_filename: str = Query(..., description="Current filename"),
-    new_filename: str = Query(..., description="New filename")
+    new_filename: str = Query(..., description="New filename"),
+    user: dict = Depends(authenticate_user)
 ):
     folder = get_full_path(
         os.getenv('FTP_INSTANCE_FOLDER_NAME', 'dev').strip('/'),
@@ -416,7 +418,8 @@ async def rename_recon_file(
 )
 async def rename_archive_file(
     old_filename: str = Query(..., description="Current filename"),
-    new_filename: str = Query(..., description="New filename")
+    new_filename: str = Query(..., description="New filename"),
+    user: dict = Depends(authenticate_user)
 ):
     folder = get_full_path(
         os.getenv('FTP_INSTANCE_FOLDER_NAME', 'dev').strip('/'),
@@ -445,4 +448,32 @@ async def rename_archive_file(
         except Exception as e:
             logger.error(f"Error renaming archive file: {e}")
             raise HTTPException(status_code=500, detail="Failed to rename file")
+
+
+@router.get(
+    "/recon_ftp/count",
+    tags=["ftp"],
+    summary="Get count of recon FTP files"
+)
+async def count_recon_ftp_files(user: dict = Depends(authenticate_user)):
+    try:
+        files = await list_recon_files()
+        return {"count": len(files)}
+    except Exception as e:
+        logger.error(f"Error counting recon files: {e}")
+        raise HTTPException(status_code=500, detail="Failed to count recon files")
+
+
+@router.get(
+    "/recon_ftp_archives/count",
+    tags=["ftp"],
+    summary="Get count of recon FTP archive files"
+)
+async def count_recon_ftp_archive_files(user: dict = Depends(authenticate_user)):
+    try:
+        files = await list_archive_files()
+        return {"count": len(files)}
+    except Exception as e:
+        logger.error(f"Error counting archive files: {e}")
+        raise HTTPException(status_code=500, detail="Failed to count archive files")
 

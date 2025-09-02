@@ -1,7 +1,14 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import ReconciliationView from './ReconciliationView.vue';
+import ErrorsView from './ErrorsView.vue';
+import FtpView from './FtpView.vue';
+
+import HomeTabView  from './HomeTabView.vue';
 import HomeSidebar from '@/components/layout/HomeSidebar.vue';
+import { storeToRefs } from 'pinia';
+import { useAuthStore } from '@/store';
+const { getIsAuthenticated } = storeToRefs(useAuthStore());
 
 
 const activeTab = ref('Reconciliation');
@@ -20,7 +27,7 @@ function setActiveTab(tabName: string) {
 </script>
 
 <template>
-  <div class="home-view">
+  <div   v-if="getIsAuthenticated" class="home-view">
     <!-- Sidebar -->
     <HomeSidebar
       :tabs="tabs"
@@ -31,20 +38,25 @@ function setActiveTab(tabName: string) {
     <!-- Main content -->
     <div class="content">
       <ReconciliationView v-if="activeTab === 'Reconciliation'" />
-      <div v-if="activeTab === 'Home'">
-        <h2>Welcome to Home</h2>
-      </div>
+      <HomeTabView v-if="activeTab === 'Home'" />
+      <FtpView v-if="activeTab === 'PrimeFTP'" />
+      <ErrorsView v-if="activeTab === 'Errors'" />
       <div v-if="activeTab === 'Dashboards'">
         <h2>Dashboard Content</h2>
       </div>
-      <div v-if="activeTab === 'PrimeFTP'">
-        <h2>Prime FTP Content</h2>
-      </div>
-      <div v-if="activeTab === 'Errors'">
-        <h2>Error Logs or Management</h2>
-      </div>
+      
+      
     </div>
   </div>
+   <!-- 👋 Default welcome screen for unauthenticated users -->
+<div v-else class="p-8">
+  <div class="text-center">
+    <h1 class="text-4xl font-bold mb-6">Welcome to the RIDE Console!</h1>
+    </div>
+
+  </div>
+
+
 </template>
 
 <style scoped>
@@ -53,63 +65,12 @@ function setActiveTab(tabName: string) {
   height: 100vh;
 }
 
-/* Sidebar styles */
-.sidebar {
-  width: 80px;
-  background-color: #fef7ff;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 1rem 0;
-  border-right: 1px solid #e0e0e0;
-}
-
-/* Sidebar item */
-.sidebar-tab {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 24px;
-  cursor: pointer;
-  color: #555;
-  font-size: 12px;
-  transition: color 0.2s ease;
-}
-
-.sidebar-tab:hover {
-  color: #222;
-}
-
-.sidebar-tab.active {
-  font-weight: bold;
-  color: #000;
-}
-
-.icon-wrapper {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background-color: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 4px;
-  transition: background-color 0.3s;
-}
-
-.icon-wrapper.selected {
-  background-color: #ede7f6; /* light purple */
-}
-
-/* Icon size and alignment */
-.material-icons {
-  font-size: 24px;
-}
-
-/* Main content area */
 .content {
   flex: 1;
   padding: 1.5rem;
   overflow-y: auto;
 }
+
+
+
 </style>

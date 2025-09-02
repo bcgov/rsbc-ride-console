@@ -85,7 +85,7 @@ class FTPUtil:
             try:
                 priv_key_io.seek(0)
                 private_key = key_class.from_private_key(priv_key_io, password=self.passphrase)
-                self.logger.debug(f"Private key loaded as {key_name}")
+                self.logger.debug("Private key loaded ")
                 return private_key
             except paramiko.SSHException:
                 continue

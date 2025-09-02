@@ -1,10 +1,11 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, RedirectResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 import os
 import logging
 
-from app.routes import config, health, recon, ftp, errors
+from app.routes import config, health, recon, ftp, errors, producer
 
 # Logging setup
 LOGGER_FORMAT = "[RIDE_CONSOLE_API] %(asctime)s %(levelname)s [%(name)s] %(message)s"
@@ -18,9 +19,10 @@ app = FastAPI(title="RIDE Console API", version="0.0.1")
 # API routers
 app.include_router(config.router, prefix="/api")
 app.include_router(health.router, prefix="/api")
-app.include_router(recon.router, prefix="/api")
-app.include_router(ftp.router, prefix="/api")
-app.include_router(errors.router, prefix="/api")
+app.include_router(recon.router, prefix="/api/recon")
+app.include_router(ftp.router, prefix="/api/ftp")
+app.include_router(errors.router, prefix="/api/errors")
+app.include_router(producer.router, prefix="/api/producer")
 
 # Mount static content
 app.mount("/assets", StaticFiles(directory="app/static_content/assets", check_dir=False), name="assets")

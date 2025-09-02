@@ -14,6 +14,7 @@ class Event(BaseModel):
     id: Optional[str] = Field(default=None, alias="_id")
     errorReason: Optional[str] = None
     eventType: str  
+    apipath: str 
     datasource: str
     recon_count: Optional[int] = None    
     retry_count: Optional[int] = None  

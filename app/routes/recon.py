@@ -112,10 +112,10 @@ def without_errorReason(events):
 )
 
 #async def get_retry_exceptions(user: dict = Depends(authenticate_user)):
-async def get_retry_exceptions():
+async def get_retry_exceptions(user: dict = Depends(authenticate_user)):
    
     query = {"recon_count": {"$gt": 10}}
-    docs = await recon_db["mainstaging"].find(query).to_list(length=100)
+    docs = await recon_db["mainstaging"].find(query).to_list()
     return get_events(docs)
 
 @router.delete(
@@ -123,7 +123,7 @@ async def get_retry_exceptions():
     tags=["recon"],
     summary="Delete retry exception event by ObjectId"
 )
-async def delete_retry_exception(object_id: str = Path(..., description="MongoDB ObjectId")):
+async def delete_retry_exception(object_id: str = Path(..., description="MongoDB ObjectId"), user: dict = Depends(authenticate_user)):
     return await delete_event_by_id("mainstaging", object_id)
 
 @router.delete(
@@ -131,7 +131,7 @@ async def delete_retry_exception(object_id: str = Path(..., description="MongoDB
     tags=["recon"],
     summary="Delete all retry exception events"
 )
-async def delete_all_retry_exceptions():
+async def delete_all_retry_exceptions(user: dict = Depends(authenticate_user)):
     return await delete_all_events("mainstaging")
 
 
@@ -144,7 +144,7 @@ async def delete_all_retry_exceptions():
     summary="Reset recon_count to 0 for a given object ID",
     response_description="Recon count reset result"
 )
-async def reset_recon_count(request: ResetRequest):
+async def reset_recon_count(request: ResetRequest, user: dict = Depends(authenticate_user)):
     try:
         object_id = ObjectId(request.object_id)
     except InvalidId:
@@ -172,9 +172,36 @@ async def reset_recon_count(request: ResetRequest):
     tags=["recon"],
     summary="Reset recon_count to 0 for all documents in mainstaging"
 )
-async def reset_all_retry_exceptions():
+async def reset_all_retry_exceptions(user: dict = Depends(authenticate_user)):
     return await reset_all_field("mainstaging", "recon_count")
 
+
+
+
+@router.post(
+    "/error_count/reset-all",
+    tags=["recon"],
+    summary="Reset recon_count to 0 for all documents in errortable"
+)
+async def reset_all_error_count(user: dict = Depends(authenticate_user)):
+    return await reset_all_field("errortable", "retry_count")
+
+
+@router.post(
+    "/error_staging/reset-all",
+    tags=["recon"],
+    summary="Reset recon_count to 0 for all documents in errorstaging"
+)
+async def reset_all_error_staging(user: dict = Depends(authenticate_user)):
+    return await reset_all_field("errorstaging", "retry_count")
+
+@router.post(
+    "/staging_count/reset-all",
+    tags=["recon"],
+    summary="Reset recon_count to 0 for all documents in mainstaging"
+)
+async def reset_all_retry_exceptions(user: dict = Depends(authenticate_user)):
+    return await reset_all_field("mainstaging", "recon_count")
 
 #  Error Count
 @router.get(
@@ -193,7 +220,7 @@ async def reset_all_retry_exceptions():
     }
 )
 async def get_error_count(user: dict = Depends(authenticate_user)):
-    docs = await recon_db["errortable"].find().to_list(length=100)
+    docs = await recon_db["errortable"].find().to_list()
     return get_events(docs)
 
 
@@ -202,7 +229,7 @@ async def get_error_count(user: dict = Depends(authenticate_user)):
     tags=["recon"],
     summary="Delete error count event by ObjectId"
 )
-async def delete_error_count(object_id: str = Path(..., description="MongoDB ObjectId")):
+async def delete_error_count(object_id: str = Path(..., description="MongoDB ObjectId"), user: dict = Depends(authenticate_user)):
     return await delete_event_by_id("errortable", object_id)
 
 @router.delete(
@@ -210,7 +237,7 @@ async def delete_error_count(object_id: str = Path(..., description="MongoDB Obj
     tags=["recon"],
     summary="Delete all error count events"
 )
-async def delete_all_error_count():
+async def delete_all_error_count(user: dict = Depends(authenticate_user)):
     return await delete_all_events("errortable")
 
 
@@ -220,7 +247,7 @@ async def delete_all_error_count():
     summary="Reset retry_count to 0 for a given object ID",
     response_description="Retry count reset result"
 )
-async def reset_retry_count(request: ResetRequest):
+async def reset_retry_count(request: ResetRequest, user: dict = Depends(authenticate_user)):
     try:
         object_id = ObjectId(request.object_id)
     except InvalidId:
@@ -243,13 +270,6 @@ async def reset_retry_count(request: ResetRequest):
         logger.error(f"Failed to reset retry_count: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
-@router.post(
-    "/error_count/reset-all",
-    tags=["recon"],
-    summary="Reset retry_count to 0 for all documents in errortable"
-)
-async def reset_all_retry_count_records():
-    return await reset_all_field("errortable", "retry_count")
 
 
 #  Error Staging
@@ -268,17 +288,45 @@ async def reset_all_retry_count_records():
         }
     }
 )
-async def get_error_staging():
-    docs = await recon_db["errorstaging"].find().to_list(length=100)
+async def get_error_staging(user: dict = Depends(authenticate_user)):
+    docs = await recon_db["errorstaging"].find().to_list()
     return get_events(docs)
 
+@router.post(
+    "/error_staging/reset",
+    tags=["recon"],
+    summary="Reset retry_count to 0 for a given object ID",
+    response_description="Retry count reset result"
+)
+async def reset_retry_count_staging(request: ResetRequest, user: dict = Depends(authenticate_user)):
+    try:
+        object_id = ObjectId(request.object_id)
+    except InvalidId:
+        raise HTTPException(status_code=400, detail="Invalid ObjectId format")
+
+    try:
+        result = await recon_db["errorstaging"].update_one(
+            {"_id": object_id},
+            {"$set": {"retry_count": 0}}
+        )
+
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Object not found")
+
+        return {"message": "Retry count reset successfully", "object_id": request.object_id}
+
+    except HTTPException:
+        raise  
+    except Exception as e:
+        logger.error(f"Failed to reset retry_count: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 @router.delete(
     "/error_staging/{object_id}",
     tags=["recon"],
     summary="Delete error staging event by ObjectId"
 )
-async def delete_error_staging(object_id: str = Path(..., description="MongoDB ObjectId")):
+async def delete_error_staging(object_id: str = Path(..., description="MongoDB ObjectId"), user: dict = Depends(authenticate_user)):
     return await delete_event_by_id("errorstaging", object_id)
 
 
@@ -287,7 +335,7 @@ async def delete_error_staging(object_id: str = Path(..., description="MongoDB O
     tags=["recon"],
     summary="Delete all error staging events"
 )
-async def delete_all_error_staging():
+async def delete_all_error_staging(user: dict = Depends(authenticate_user)):
     return await delete_all_events("errorstaging")
 
 
@@ -307,9 +355,9 @@ async def delete_all_error_staging():
         }
     }
 )
-async def get_staging_count():
+async def get_staging_count(user: dict = Depends(authenticate_user)):
    
-    docs = await recon_db["mainstaging"].find().to_list(length=100)
+    docs = await recon_db["mainstaging"].find().to_list()
     return get_events(docs)
 
 @router.delete(
@@ -317,7 +365,7 @@ async def get_staging_count():
     tags=["recon"],
     summary="Delete staging count event by ObjectId"
 )
-async def delete_staging_count(object_id: str = Path(..., description="MongoDB ObjectId")):
+async def delete_staging_count(object_id: str = Path(..., description="MongoDB ObjectId"), user: dict = Depends(authenticate_user)):
     return await delete_event_by_id("mainstaging", object_id)
 
 
@@ -326,7 +374,7 @@ async def delete_staging_count(object_id: str = Path(..., description="MongoDB O
     tags=["recon"],
     summary="Delete all staging count events"
 )
-async def delete_all_staging_count():
+async def delete_all_staging_count(user: dict = Depends(authenticate_user)):
     return await delete_all_documents("mainstaging")
 
 
@@ -335,7 +383,7 @@ async def delete_all_staging_count():
     tags=["recon"],
     summary="Get count of retry exceptions"
 )
-async def get_retry_exceptions_count():
+async def get_retry_exceptions_count(user: dict = Depends(authenticate_user)):
     query = {"recon_count": {"$gt": 10}}
     return await get_collection_count("mainstaging", query)
 
@@ -345,7 +393,7 @@ async def get_retry_exceptions_count():
     tags=["recon"],
     summary="Get count of error count events"
 )
-async def get_error_count_count():
+async def get_error_count_count(user: dict = Depends(authenticate_user)):
     return await get_collection_count("errortable")
 
 
@@ -354,7 +402,7 @@ async def get_error_count_count():
     tags=["recon"],
     summary="Get count of error staging events"
 )
-async def get_error_staging_count():
+async def get_error_staging_count(user: dict = Depends(authenticate_user)):
     return await get_collection_count("errorstaging")
 
 
@@ -363,7 +411,7 @@ async def get_error_staging_count():
     tags=["recon"],
     summary="Get count of staging count events"
 )
-async def get_staging_count_count():
+async def get_staging_count_count(user: dict = Depends(authenticate_user)):
     return await get_collection_count("mainstaging")
 
 

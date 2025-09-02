@@ -1,6 +1,6 @@
-export function clearReconciliationCache() {
+export function clearCache() {
   Object.keys(sessionStorage).forEach((key) => {
-    if (key.startsWith('RECON_EVENTS_')) {
+    if (key.startsWith('EVENT')) {
       sessionStorage.removeItem(key);
     }
   });
