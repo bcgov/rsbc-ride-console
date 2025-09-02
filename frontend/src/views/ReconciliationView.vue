@@ -5,8 +5,13 @@ import { useFetchRecordsManager } from '@/composables/useFetchRecordsManager';
 import {useReconUpdater} from '@/composables/useReconUpdater';
 import ProducerService from '@/services/producerService';
 import { StorageKey } from '@/utils/constants';
+import FetchRecordsService from '@/services/fetchRecordsService';
 
+
+const service = FetchRecordsService;
 const storageType = window.sessionStorage;
+
+
 
 // Filters
 const filters = ref({
@@ -195,12 +200,24 @@ const retryExceptionsCount = computed(() => {
 })
 
 const refreshAllData = async () => {
+  // Refresh counts for all tabs
   for (const card of cards.value) {
-    await refreshData(card);
+    storageType.removeItem(`${StorageKey.EVENT_COUNT}_error_${card.type}`);
     card.count = await fetchRecordCount(card);
-    await fetchRecords(card);
   }
+
+  // Refresh and cache data for all tabs (including inactive)
+  for (const card of cards.value) {
+    const response = await service.fetchRecords('reconciliation', card.type);
+    const data = response.data || [];
+    storageType.setItem(`${StorageKey.EVENTS}_${'reconciliation'}_${card.type}`, JSON.stringify(data));
+  }
+
+  // Finally, load active tab's data into UI
+  await fetchRecords(activeCard.value);
 };
+
+
 
 const detailMenuOpen = ref(false);
 

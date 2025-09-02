@@ -4,7 +4,13 @@ import SidebarTab from '@/components/layout/SidebarTab.vue';
 import { useFetchRecordsManager } from '@/composables/useFetchRecordsManager';
 import { useErrorUpdater } from '@/composables/useErrorUpdater';
 import { StorageKey } from '@/utils/constants';
+
+import FetchRecordsService from '@/services/fetchRecordsService';
+;
+
+const service = FetchRecordsService;
 const storageType = window.sessionStorage;
+
 
 const filters = ref({
   ticketNo: '',
@@ -43,12 +49,23 @@ const globalMenuOpen = ref(false);
 const isRefreshing = ref(false);
 
 const refreshAllData = async () => {
+  // Refresh counts for all tabs
   for (const card of cards.value) {
-    await refreshData(card);
+    storageType.removeItem(`${StorageKey.EVENT_COUNT}_error_${card.type}`);
     card.count = await fetchRecordCount(card);
-    await fetchRecords(card);
   }
+
+  // Refresh and cache data for all tabs (including inactive)
+  for (const card of cards.value) {
+    const response = await service.fetchRecords('error', card.type);
+    const data = response.data || [];
+    storageType.setItem(`${StorageKey.EVENTS}_${'error'}_${card.type}`, JSON.stringify(data));
+  }
+
+  // Finally, load active tab's data into UI
+  await fetchRecords(activeCard.value);
 };
+
 
 
 onMounted(async () => {

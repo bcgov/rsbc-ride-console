@@ -3,19 +3,22 @@ import { ref, computed, onMounted } from 'vue';
 import SidebarTab from '@/components/layout/SidebarTab.vue';
 import { useFetchRecordsManager } from '@/composables/useFetchRecordsManager';
 import { useFtpFileManager } from '@/composables/useFtpFileManager';
+import FetchRecordsService from '@/services/fetchRecordsService';
+import { StorageKey } from '@/utils/constants';
 
+const service = FetchRecordsService;
+const storageType = window.sessionStorage;
 
-// Filters (empty for now)
 const filters = ref({});
 const isRefreshing = ref(false);
 
-// Tabs (cards)
 const cards = ref([
   { title: 'Recon', type: 'recon_ftp', class: '', count: 0 },
   { title: 'Recon Archive', type: 'recon_ftp_archives', class: '', count: 0 },
 ]);
 
-// Composable logic for FTP
+const activeCard = ref(cards.value[0]);
+
 const {
   records,
   apiError,
@@ -25,72 +28,66 @@ const {
 } = useFetchRecordsManager('ftp');
 
 const {
-   renameFile,
-   deleteFile,
-   downloadFile,
-} = useFtpFileManager()
+  renameFile,
+  deleteFile,
+  downloadFile,
+} = useFtpFileManager();
 
-
-
-// Active tab
-const activeCard = ref(cards.value[0].type);
-
-// Menu open state to track which file's menu is open
 const openMenu = ref<string | null>(null);
 
-// Fetch data on mount
 onMounted(async () => {
   for (const card of cards.value) {
     card.count = await fetchRecordCount(card);
   }
-  await fetchRecords(cards.value[0]);
+  await fetchRecords(activeCard.value);
 });
 
-// Tab select handler
 const onSelectCard = async (card: typeof cards.value[0]) => {
-  activeCard.value = card.type;
+  activeCard.value = card;
   await fetchRecords(card);
-  openMenu.value = null; // close menu when switching tabs
+  openMenu.value = null;
 };
 
-// Filtered records computed
 const filteredRecords = computed(() => records.value);
 
-// Menu toggle handler
 const toggleMenu = (file: string) => {
   openMenu.value = openMenu.value === file ? null : file;
 };
 
-// Close menu handler (for outside clicks)
 const closeMenu = () => {
   openMenu.value = null;
 };
 
-// Close menu on outside click
 document.addEventListener('click', (e) => {
   if (!(e.target as HTMLElement).closest('.menu-wrapper')) {
     closeMenu();
   }
 });
 
-// Menu actions
-const handleDownload = (file: string) => {
-  console.log('Download', file);
-  // TODO: call FTPManager.download(file)
-  openMenu.value = null;
+const handleDownload = async (file: string) => {
+  try {
+    const blob = await downloadFile(activeCard.value.type, file);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = file;
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Download failed:', error);
+    alert('Failed to download file.');
+  } finally {
+    openMenu.value = null;
+  }
 };
 
 const handleRename = async (file: string) => {
   const newName = prompt('Enter new name for the file:', file);
   if (!newName || newName.trim() === '' || newName === file) return;
 
-  const type = activeCard.value; 
-  console.log(type);
-
   try {
-    await renameFile(type, file, newName);
-    await fetchRecords(cards.value.find(c => c.type === type)!);
-    console.log(`Renamed "${file}" to "${newName}"`);
+    await renameFile(activeCard.value.type, file, newName);
+    await fetchRecords(activeCard.value);
     refreshAllData();
   } catch (error) {
     console.error('Rename failed', error);
@@ -100,19 +97,44 @@ const handleRename = async (file: string) => {
   }
 };
 
+const handleDelete = async (file: string) => {
+  const confirmDelete = window.confirm(`Are you sure you want to delete "${file}"?`);
+  if (!confirmDelete) return;
 
-const handleDelete = (file: string) => {
-  console.log('Delete', file);
-  // TODO: call FTPManager.delete(file)
-  openMenu.value = null;
-};
-const refreshAllData = async () => {
-  for (const card of cards.value) {
-    await refreshData(card);
-    card.count = await fetchRecordCount(card);
-    await fetchRecords(card);
+  try {
+    await deleteFile(activeCard.value.type, file);
+    await fetchRecords(activeCard.value);
+    refreshAllData();
+  } catch (error) {
+    console.error('Delete failed', error);
+    alert('Delete failed. Please try again.');
+  } finally {
+    openMenu.value = null;
   }
 };
+
+
+const refreshAllData = async () => {
+  // Refresh counts for all tabs
+  for (const card of cards.value) {
+    storageType.removeItem(`${StorageKey.EVENT_COUNT}_error_${card.type}`);
+    card.count = await fetchRecordCount(card);
+  }
+
+  // Refresh and cache data for all tabs (including inactive)
+  for (const card of cards.value) {
+    const response = await service.fetchRecords('ftp', card.type);
+    const data = response.data || [];
+    storageType.setItem(`${StorageKey.EVENTS}_${'ftp'}_${card.type}`, JSON.stringify(data));
+  }
+
+  // Finally, load active tab's data into UI
+  await fetchRecords(activeCard.value);
+};
+
+
+
+
 </script>
 
 <template>
@@ -124,20 +146,20 @@ const refreshAllData = async () => {
           v-for="card in cards"
           :key="card.type"
           :tab="card"
-          :isActive="activeCard === card.type"
-          :class="{ active: activeCard === card.type }"
+          :isActive="activeCard === card"
+          :class="{ active: activeCard === card }"
           @click="onSelectCard(card)"
         />
       </div>
 
       <!-- File List -->
       <div class="file-list-container">
-        <!-- Refresh button -->
-          <div class="refresh-container">
-            <button @click="refreshAllData" :disabled="isRefreshing">
-              {{ isRefreshing ? 'Refreshing...' : 'Refresh' }}
-            </button>
-       </div>
+        <!-- Refresh -->
+        <div class="refresh-container">
+          <button @click="refreshAllData" :disabled="isRefreshing">
+            {{ isRefreshing ? 'Refreshing...' : 'Refresh' }}
+          </button>
+        </div>
 
         <div v-if="apiError" class="error-message">
           {{ apiError }}
@@ -154,7 +176,7 @@ const refreshAllData = async () => {
               {{ file }}
             </span>
 
-            <!-- 3-dot Menu -->
+            <!-- 3-dot menu -->
             <div class="menu-wrapper" style="position: relative;">
               <button
                 class="menu-trigger"
@@ -165,9 +187,9 @@ const refreshAllData = async () => {
               </button>
 
               <div v-if="openMenu === file" class="menu-dropdown">
-                <button class="menu-button" @click="handleDownload(file, activeCard)">Download</button>
-                <button class="menu-button" @click="handleRename(file, activeCard)">Rename</button>
-                <button class="menu-button" @click="handleDelete(file, activeCard)">Delete</button>
+                <button class="menu-button" @click="handleDownload(file)">Download</button>
+                <button class="menu-button" @click="handleRename(file)">Rename</button>
+                <button class="menu-button" @click="handleDelete(file)">Delete</button>
               </div>
             </div>
           </div>
@@ -211,5 +233,34 @@ const refreshAllData = async () => {
   background: #fdf7ff;
   padding: 10px;
   overflow-y: auto;
+}
+
+.refresh-container {
+  margin-bottom: 10px;
+}
+
+.menu-dropdown {
+  position: absolute;
+  top: 30px;
+  right: 0;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  z-index: 100;
+  box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
+}
+
+.menu-button {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.menu-button:hover {
+  background-color: #f0f0f0;
 }
 </style>
