@@ -215,7 +215,7 @@ const retryExceptionsCount = computed(() => {
 const refreshAllData = async () => {
   // Refresh counts for all tabs
   for (const card of cards.value) {
-    storageType.removeItem(`${StorageKey.EVENT_COUNT}_error_${card.type ?? 'unknown'}`);
+    storageType.removeItem(`${StorageKey.EVENT_COUNT}_reconciliation_${card.type ?? 'unknown'}`);
     card.count = await fetchRecordCount(card);
   }
 

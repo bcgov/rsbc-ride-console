@@ -11,6 +11,7 @@ import errno
 from fastapi.responses import StreamingResponse
 from io import BytesIO
 from app.auth.auth import authenticate_user
+from fastapi import File, UploadFile
 
 # Holds the current connection (per async context)
 current_ftp_connection = contextvars.ContextVar("current_ftp_connection", default=None)
@@ -76,10 +77,10 @@ async def connect_to_ftp():
     user_password = os.getenv('PRIME_SFTP_PASS')
     priv_key_str = os.getenv('PRIME_SFTP_PRIV_KEY_FILE').replace('\\n', '\n')
    
-    logger.info(f"priv_key_str: {priv_key_str}")
+    
     priv_key_file_passphrase = os.getenv('PRIME_SFTP_PRIV_KEY_FILE_PASSPHRASE', None)
     pub_key_str = os.getenv('PRIME_SFTP_PUB_KEY_FILE').replace('\\n', '\n')
-    logger.info(f"pub_key_str: {pub_key_str}")
+
     if env == "LOCAL":
         try:
         
@@ -476,4 +477,55 @@ async def count_recon_ftp_archive_files(user: dict = Depends(authenticate_user))
     except Exception as e:
         logger.error(f"Error counting archive files: {e}")
         raise HTTPException(status_code=500, detail="Failed to count archive files")
+
+
+from fastapi import File, UploadFile, Query
+
+@router.post(
+    "/recon_ftp/upload",
+    tags=["ftp"],
+    status_code=201,
+    summary="Upload file to specified FTP folder",
+    responses={
+        201: {"description": "File uploaded successfully"},
+        400: {"description": "Invalid upload or folder"},
+        404: {"description": "Target folder not found"},
+        500: {"description": "Failed to upload file"}
+    }
+)
+async def upload_file_to_ftp(
+    file: UploadFile = File(...),
+    folder: str = Query(..., description="Folder name under FTP root (e.g. 'primerecon', 'primerecon_archive')"),
+    #user: dict = Depends(authenticate_user)
+):
+    # Clean folder path
+    folder = folder.strip("/")
+
+    # Base path: e.g., dev/primerecon
+    ftp_root = os.getenv('FTP_INSTANCE_FOLDER_NAME', 'dev').strip('/')
+    full_path = get_full_path(ftp_root, folder)
+    remote_path = '/' + get_full_path(full_path, file.filename)
+
+    async with ftp_connection() as ftputil:
+        sftp = ftputil.acquire_sftp_channel()
+
+        try:
+            # Ensure target folder exists
+            ensure_folder_exists(sftp, f'/{full_path}')
+        except Exception as e:
+            logger.error(f"Folder validation failed for '{full_path}': {e}")
+            raise HTTPException(status_code=404, detail=f"Folder '{folder}' not found or could not be created")
+
+        try:
+            file_content = await file.read()
+
+            with sftp.open(remote_path, 'w') as remote_file:
+                remote_file.write(file_content)
+
+            return {"message": f"File '{file.filename}' uploaded successfully to '{folder}'"}
+        except Exception as e:
+            logger.error(f"Upload failed for file '{file.filename}' to '{folder}': {e}")
+            raise HTTPException(status_code=500, detail="Failed to upload file")
+
+
 
