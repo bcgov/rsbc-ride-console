@@ -504,14 +504,14 @@ async def upload_file_to_ftp(
     # Base path: e.g., dev/primerecon
     ftp_root = os.getenv('FTP_INSTANCE_FOLDER_NAME', 'dev').strip('/')
     full_path = get_full_path(ftp_root, folder)
-    remote_path = '/' + get_full_path(full_path, file.filename)
+    remote_path = get_full_path(full_path, file.filename)
 
     async with ftp_connection() as ftputil:
         sftp = ftputil.acquire_sftp_channel()
 
         try:
             # Ensure target folder exists
-            ensure_folder_exists(sftp, f'/{full_path}')
+            ensure_folder_exists(sftp, f'{full_path}')
         except Exception as e:
             logger.error(f"Folder validation failed for '{full_path}': {e}")
             raise HTTPException(status_code=404, detail=f"Folder '{folder}' not found or could not be created")
