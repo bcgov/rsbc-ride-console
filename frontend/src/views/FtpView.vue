@@ -118,7 +118,7 @@ const handleDelete = async (file: string) => {
 const refreshAllData = async () => {
   // Refresh counts for all tabs
   for (const card of cards.value) {
-    storageType.removeItem(`${StorageKey.EVENT_COUNT}_error_${card.type}`);
+    storageType.removeItem(`${StorageKey.EVENT_COUNT}_ftp_${card.type}`);
     card.count = await fetchRecordCount(card);
   }
 
@@ -145,7 +145,7 @@ const refreshAllData = async () => {
       <div class="sidebar">
         <SidebarTab
           v-for="card in cards"
-          :key="card.type"
+          :key="card.title"
           :tab="card"
           :isActive="activeCard === card"
           :class="{ active: activeCard === card }"
