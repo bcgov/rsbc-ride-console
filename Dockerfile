@@ -12,7 +12,7 @@ RUN npm ci && npm run build
 # Build the app
 #
 FROM python:3.12-alpine AS app
-
+RUN apk update && apk upgrade --no-cache
 # Build App
 COPY requirements.txt /python/requirements.txt
 # Install dependencies

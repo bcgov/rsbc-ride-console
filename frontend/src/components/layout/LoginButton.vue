@@ -5,6 +5,7 @@ import { useRouter } from 'vue-router';
 import { Button } from '@/lib/primevue';
 import { useAuthStore } from '@/store/authStore';
 import { RouteNames } from '@/utils/constants';
+import { clearCache } from '@/utils/cacheUtils';
 
 const router = useRouter();
 
@@ -16,6 +17,7 @@ function login() {
 }
 
 function logout() {
+  clearCache();
   router.push({ name: RouteNames.LOGOUT });
 }
 </script>

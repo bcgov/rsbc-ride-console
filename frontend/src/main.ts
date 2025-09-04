@@ -19,6 +19,7 @@ import 'primevue/resources/primevue.min.css';
 import 'primeicons/primeicons.css';
 import 'primeflex/primeflex.css';
 import '@/assets/main.scss';
+import '@/assets/common.scss';
 
 /**
  * @function initializeApp

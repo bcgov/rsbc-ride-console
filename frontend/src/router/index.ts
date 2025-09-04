@@ -6,6 +6,7 @@ import { RouteNames, StorageKey } from '@/utils/constants';
 
 import type { RouteRecordRaw } from 'vue-router';
 
+
 /**
  * @function createProps
  * Parses the route query and params to generate vue props
@@ -16,6 +17,7 @@ import type { RouteRecordRaw } from 'vue-router';
 //   return { ...route.query, ...route.params };
 // }
 
+
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
@@ -23,6 +25,7 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('../views/HomeView.vue'),
     meta: { title: 'Home' }
   },
+  
   {
     path: '/stylings',
     name: RouteNames.STYLINGS,

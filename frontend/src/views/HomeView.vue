@@ -1,109 +1,76 @@
 <script setup lang="ts">
-import { Message } from '@/lib/primevue';
+import { ref } from 'vue';
+import ReconciliationView from './ReconciliationView.vue';
+import ErrorsView from './ErrorsView.vue';
+import FtpView from './FtpView.vue';
+
+import HomeTabView  from './HomeTabView.vue';
+import HomeSidebar from '@/components/layout/HomeSidebar.vue';
 import { storeToRefs } from 'pinia';
-import { useRoute, useRouter } from 'vue-router';
+import { useAuthStore } from '@/store';
+const { getIsAuthenticated } = storeToRefs(useAuthStore());
 
-import { useConfigStore } from '@/store';
 
-// Store
-const { getConfig } = storeToRefs(useConfigStore());
+const activeTab = ref('Reconciliation');
 
-const route = useRoute();
-const router = useRouter();
-const redirectParam = route.query.redirect as string | undefined;
-if (redirectParam) {
-  let queryParameters = Object.entries(route.query)
-    .filter(([key]) => key !== 'redirect')
-    .reduce(
-      (acc, [key, value]) => {
-        acc[key] = value as string;
-        return acc;
-      },
-      {} as Record<string, string>
-    );
-  router.replace({ path: redirectParam, query: queryParameters });
+const tabs = [
+  { name: 'Home', label: 'Home', icon: 'home' },
+  { name: 'Reconciliation', label: 'Recon', icon: 'star' },
+  { name: 'Dashboards', label: 'Dashboards', icon: 'pie_chart' },
+  { name: 'PrimeFTP', label: 'Prime FTP', icon: 'folder' },
+  { name: 'Errors', label: 'Errors', icon: 'error' },
+];
+
+function setActiveTab(tabName: string) {
+  activeTab.value = tabName;
 }
-
-// Actions
-const frontEcosystem: Array<{ text: string; href: string }> = [
-  {
-    text: 'Vue 3',
-    href: 'https://vuejs.org/'
-  },
-  {
-    text: 'Pinia',
-    href: 'https://pinia.vuejs.org/'
-  },
-  {
-    text: 'PrimeVue',
-    href: 'https://primevue.org/'
-  },
-  {
-    text: 'Vitest',
-    href: 'https://vitest.dev/'
-  }
-];
-
-const backEcosystem: Array<{ text: string; href: string }> = [
-  {
-    text: 'Express',
-    href: 'https://expressjs.com/'
-  },
-  {
-    text: 'Jest',
-    href: 'https://jestjs.io/'
-  }
-];
-
-const languagesEcosystem: Array<{ text: string; href: string }> = [
-  {
-    text: 'TypeScript',
-    href: 'https://www.typescriptlang.org/'
-  }
-];
 </script>
 
 <template>
-  <div>
-    <Message
-      v-if="getConfig?.notificationBanner"
-      severity="warn"
-    >
-      {{ getConfig?.notificationBanner }}
-    </Message>
+  <div   v-if="getIsAuthenticated" class="home-view">
+    <!-- Sidebar -->
+    <HomeSidebar
+      :tabs="tabs"
+      :activeTab="activeTab"
+      @tab-click="setActiveTab"
+    />
 
-    <div class="text-center">
-      <h1 class="font-bold">Welcome to the RIDE Console!</h1>
-      <h2>Frontend Ecosystem</h2>
-      <a
-        v-for="(eco, i) in frontEcosystem"
-        :key="i"
-        :href="eco.href"
-        class="mx-3"
-        target="_blank"
-      >
-        {{ eco.text }}
-      </a>
-      <h2>Backend Ecosystem</h2>
-      <a
-        v-for="(eco, i) in backEcosystem"
-        :key="i"
-        :href="eco.href"
-        class="mx-3"
-        target="_blank"
-      >
-        {{ eco.text }}
-      </a>
-      <h2>Languages</h2>
-      <a
-        v-for="(eco, i) in languagesEcosystem"
-        :key="i"
-        :href="eco.href"
-        class="mx-3"
-        target="_blank"
-      >
-        {{ eco.text }}
-      </a>
+    <!-- Main content -->
+    <div class="content">
+      <ReconciliationView v-if="activeTab === 'Reconciliation'" />
+      <HomeTabView v-if="activeTab === 'Home'" />
+      <FtpView v-if="activeTab === 'PrimeFTP'" />
+      <ErrorsView v-if="activeTab === 'Errors'" />
+      <div v-if="activeTab === 'Dashboards'">
+        <h2>Dashboard Content</h2>
+      </div>
+      
+      
     </div>
   </div>
+   <!-- 👋 Default welcome screen for unauthenticated users -->
+<div v-else class="p-8">
+  <div class="text-center">
+    <h1 class="text-4xl font-bold mb-6">Welcome to the RIDE Console!</h1>
+    </div>
+
+  </div>
+
+
 </template>
+
+<style scoped>
+.home-view {
+  display: flex;
+  height: 100vh;
+}
+
+.content {
+  flex: 1;
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+
+
+</style>

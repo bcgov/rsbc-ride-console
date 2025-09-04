@@ -5,6 +5,7 @@ def test_read_root():
     assert response.status_code == 200
     assert response.json() == {"message": "RIDE Console API Running"}
 
+    
 def test_custom_404_handler_api():
     response = client.get("/api/nonexistent")
     assert response.status_code == 404
