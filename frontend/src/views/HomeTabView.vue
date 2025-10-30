@@ -36,11 +36,11 @@ onMounted(async () => {
 
   // Grafana iframe
   try {
-    const now = Date.now();
-    const oneHourAgo = now - 60 * 60 * 1000;
-    grafanaIframeUrl.value = await GrafanaService.getDashboardEmbedUrl(
-      dashboardUid, oneHourAgo, now
-    );
+
+    const to = Date.now();
+    const from = to - 24*60 * 60 * 1000; // Last 1 hour
+    grafanaIframeUrl.value = await GrafanaService.getCpuUsagePanelUrl(from, to);
+    
   } catch (error) {
     console.error('Failed to load Grafana panel URL:', error);
   }
