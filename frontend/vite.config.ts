@@ -9,7 +9,9 @@ const proxyObject = {
   target: 'http://localhost:8085',
   ws: true,
   changeOrigin: true,
-  secure: false
+  secure: false,
+  timeout: 0,        // no timeout
+  proxyTimeout: 0
 };
 
 // https://vitejs.dev/config/
