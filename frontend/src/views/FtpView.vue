@@ -64,34 +64,36 @@ const onSelectCard = async (card: typeof cards.value[0]) => {
   activeCard.value = card;
   openMenu.value = null;
 
-  // Start spinner
+  const cacheKey = `${StorageKey.EVENTS}_ftp_${card.type}`;
+  const cachedData = storageType.getItem(cacheKey);
+
+  if (cachedData) {
+    // Load from cache instantly, no spinner
+    records.value = JSON.parse(cachedData);
+    return;
+  }
+
+  // Only show spinner if fetching from server
   isLoading.value = true;
   currentFileProcessing.value = 'Loading files...';
   cancelLoading.value = false;
 
   try {
-    // Clear cached data
-    storageType.removeItem(`${StorageKey.EVENTS}_ftp_${card.type}`);
-
-    // Fetch fresh records
     const response = await service.fetchRecords('ftp', card.type);
     const data = response.data || [];
 
-    // Update reactive array to trigger UI update
     records.value = data;
 
-    // Optional: cache data
-    storageType.setItem(`${StorageKey.EVENTS}_ftp_${card.type}`, JSON.stringify(data));
+    // Cache the result
+    storageType.setItem(cacheKey, JSON.stringify(data));
   } catch (error) {
     console.error('Failed to load files:', error);
     alert('Failed to load files.');
   } finally {
-    // Stop spinner
     isLoading.value = false;
     currentFileProcessing.value = null;
   }
 };
-
 
 const filteredRecords = computed(() => records.value);
 
