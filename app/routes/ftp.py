@@ -95,8 +95,8 @@ async def connect_to_ftp():
     ftp_instance_folder = os.getenv('FTP_INSTANCE_FOLDER_NAME', 'dev')
     primerecon_folder = os.getenv('PRIMERECON_FTP_FOLDER', 'primerecon')
     primerecon_archive_folder = os.getenv('PRIMERECON_ARCHIVE_FOLDER', 'primerecon_archive')
-    full_primerecon_path = get_full_path(ftp_instance_folder, primerecon_folder)
-    full_archive_path = get_full_path(ftp_instance_folder, primerecon_archive_folder)
+    full_primerecon_path = '/' + get_full_path(ftp_instance_folder, primerecon_folder)
+    full_archive_path = '/' +get_full_path(ftp_instance_folder, primerecon_archive_folder)
      # Log environment variables
     #logger.info(f"Recon type: {recon_type.upper()}")
     logger.info(f"FTP server: {host}:{port}")
@@ -151,7 +151,7 @@ async def ftp_connection():
             current_ftp_connection.set(None)
 
 async def list_recon_files() -> List[str]:
-    folder = get_full_path(
+    folder = '/' + get_full_path(
         os.getenv('FTP_INSTANCE_FOLDER_NAME', 'dev'),
         os.getenv('PRIMERECON_FTP_FOLDER', 'primerecon')
     )
@@ -165,7 +165,7 @@ async def list_recon_files() -> List[str]:
 
 
 async def list_archive_files() -> List[str]:
-    folder = get_full_path(
+    folder = '/' + get_full_path(
         os.getenv('FTP_INSTANCE_FOLDER_NAME', 'dev'),
         os.getenv('PRIMERECON_ARCHIVE_FOLDER', 'primerecon_archive')
     )
@@ -239,7 +239,7 @@ async def delete_recon_file(filename: str = Query(..., description="File path re
     """
     Delete a file by filename inside the recon FTP folder.
     """
-    folder = get_full_path(
+    folder = '/' + get_full_path(
         os.getenv('FTP_INSTANCE_FOLDER_NAME', 'dev'),
         os.getenv('PRIMERECON_FTP_FOLDER', 'primerecon')
     )
@@ -273,7 +273,7 @@ async def delete_recon_file(filename: str = Query(..., description="File path re
     }
 )
 async def delete_file_from_archives(filename: str = Query(..., description="File path relative to the recon FTP folder"), user: dict = Depends(authenticate_user)):
-    folder = get_full_path(
+    folder = '/' + get_full_path(
         os.getenv('FTP_INSTANCE_FOLDER_NAME', 'dev'),
         os.getenv('PRIMERECON_ARCHIVE_FOLDER', 'primerecon_archive')
     )
@@ -309,7 +309,7 @@ from io import BytesIO
     }
 )
 async def download_recon_file(filename: str = Query(..., description="File path relative to the recon FTP folder"), user: dict = Depends(authenticate_user)):
-    folder = get_full_path(
+    folder = '/' + get_full_path(
         os.getenv('FTP_INSTANCE_FOLDER_NAME', 'dev'),
         os.getenv('PRIMERECON_FTP_FOLDER', 'primerecon')
     )
@@ -340,7 +340,7 @@ async def download_recon_file(filename: str = Query(..., description="File path 
     }
 )
 async def download_archive_file(filename: str = Query(..., description="File path relative to the archive FTP folder"), user: dict = Depends(authenticate_user)):
-    folder = get_full_path(
+    folder ='/' +  get_full_path(
         os.getenv('FTP_INSTANCE_FOLDER_NAME', 'dev'),
         os.getenv('PRIMERECON_ARCHIVE_FOLDER', 'primerecon_archive')
     )
@@ -377,7 +377,7 @@ async def rename_recon_file(
     new_filename: str = Query(..., description="New filename"),
     user: dict = Depends(authenticate_user)
 ):
-    folder = get_full_path(
+    folder = '/' + get_full_path(
         os.getenv('FTP_INSTANCE_FOLDER_NAME', 'dev'),
         os.getenv('PRIMERECON_FTP_FOLDER', 'primerecon')
     )
@@ -422,7 +422,7 @@ async def rename_archive_file(
     new_filename: str = Query(..., description="New filename"),
     user: dict = Depends(authenticate_user)
 ):
-    folder = get_full_path(
+    folder = '/' + get_full_path(
         os.getenv('FTP_INSTANCE_FOLDER_NAME', 'dev'),
         os.getenv('PRIMERECON_ARCHIVE_FOLDER', 'primerecon_archive')
     )
@@ -503,8 +503,8 @@ async def upload_file_to_ftp(
 
     # Base path: e.g., dev/primerecon
     ftp_root = os.getenv('FTP_INSTANCE_FOLDER_NAME', 'dev')
-    full_path = get_full_path(ftp_root, folder)
-    remote_path = get_full_path(full_path, file.filename)
+    full_path = '/' + get_full_path(ftp_root, folder)
+    remote_path = '/' + get_full_path(full_path, file.filename)
 
     async with ftp_connection() as ftputil:
         sftp = ftputil.acquire_sftp_channel()
