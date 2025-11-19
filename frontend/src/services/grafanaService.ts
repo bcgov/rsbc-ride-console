@@ -1,5 +1,9 @@
 import { ConfigService } from './index';
 
+// Common Sysdig dashboard constants
+const SYSDIG_UID = 'b5696b68-133a-404f-be64-1a53e3cba799'; // dashboard UID
+const SYSDIG_SLUG = 'sysdig-dashboard'; // dashboard slug
+
 const GrafanaService = {
   /**
    * Builds an iframe-compatible Grafana dashboard panel URL.
@@ -44,42 +48,67 @@ const GrafanaService = {
    * Returns the CPU Usage panel embed URL (panelId 6).
    */
   async getCpuUsagePanelUrl(from?: number, to?: number): Promise<string> {
-    const uid = 'b5696b68-133a-404f-be64-1a53e3cba799'; //  dashboard UID
-    const dashboardSlug = 'sysdig-dashboard';
-  
     const panelId = 6;
-
-    return this.getDashboardEmbedUrl(uid, dashboardSlug, panelId, from, to);
+    return this.getDashboardEmbedUrl(SYSDIG_UID, SYSDIG_SLUG, panelId, from, to);
   },
 
-
-
   /**
-   * Returns the Memory Usage panel embed URL (panelId 6).
+   * Returns the Memory Usage panel embed URL (panelId 7).
    */
-
   async getMemoryUsagePanelUrl(from?: number, to?: number): Promise<string> {
-    const uid = 'b5696b68-133a-404f-be64-1a53e3cba799'; //  dashboard UID
-    const dashboardSlug = 'sysdig-dashboard';
-  
     const panelId = 7;
-
-    return this.getDashboardEmbedUrl(uid, dashboardSlug, panelId, from, to);
+    return this.getDashboardEmbedUrl(SYSDIG_UID, SYSDIG_SLUG, panelId, from, to);
   },
-  
-  
-    
+
   /**
-   * Returns the Storage Usage panel embed URL (panelId 6).
+   * Returns the Storage Usage panel embed URL (panelId 11).
    */
   async getStorageUsagePanelUrl(from?: number, to?: number): Promise<string> {
-    const uid = 'b5696b68-133a-404f-be64-1a53e3cba799'; //  dashboard UID
-    const dashboardSlug = 'sysdig-dashboard';
-  
     const panelId = 11;
+    return this.getDashboardEmbedUrl(SYSDIG_UID, SYSDIG_SLUG, panelId, from, to);
+  },
 
-    return this.getDashboardEmbedUrl(uid, dashboardSlug, panelId, from, to);
-  }
+  /**
+   * Returns the Available APIs panel embed URL (panelId 12).
+   */
+  async getAvailableAPIsPanelUrl(from?: number, to?: number): Promise<string> {
+    const panelId = 12;
+    return this.getDashboardEmbedUrl(SYSDIG_UID, SYSDIG_SLUG, panelId, from, to);
+  },
+
+  /**
+   * Returns the Unavailable APIs panel embed URL (panelId 13).
+   */
+  async getUnavailableAPIsPanelUrl(from?: number, to?: number): Promise<string> {
+    const panelId = 13;
+    return this.getDashboardEmbedUrl(SYSDIG_UID, SYSDIG_SLUG, panelId, from, to);
+  },
+
+  /**
+   * Returns the API Network errors panel embed URL (panelId 15).
+   */
+  async getAPINetWorkErrorsPanelUrl(from?: number, to?: number): Promise<string> {
+    const panelId = 15;
+    return this.getDashboardEmbedUrl(SYSDIG_UID, SYSDIG_SLUG, panelId, from, to);
+  },
+
+  /**
+   * Returns the API HTTP Network errors panel embed URL (panelId 18).
+   */
+  async getAPIHTTPNetWorkErrorsPanelUrl(from?: number, to?: number): Promise<string> {
+    const panelId = 18;
+    return this.getDashboardEmbedUrl(SYSDIG_UID, SYSDIG_SLUG, panelId, from, to);
+  },
+
+
+  /**
+   * Returns the API Latench panel embed URL (panelId 16).
+   */
+  async getAPILatencyPanelUrl(from?: number, to?: number): Promise<string> {
+    const panelId = 16;
+    return this.getDashboardEmbedUrl(SYSDIG_UID, SYSDIG_SLUG, panelId, from, to);
+  },
+
 };
 
 export default GrafanaService;
