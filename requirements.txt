@@ -3,11 +3,13 @@ motor
 pymongo
 aiofiles
 pydantic>=2.0.0
-python-jose[cryptography] 
-python-dotenv 
+python-jose[cryptography]
+python-dotenv
 httpx
 fastapi_oidc
 paramiko
-     
+gunicorn
+
+
 
 
