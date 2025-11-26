@@ -30,6 +30,9 @@ const timeRanges = [
 // System Performance time range
 const selectedRange = ref(24);
 
+
+
+
 // API Components time range
 const selectedApiRange = ref(24);
 
@@ -67,15 +70,54 @@ async function loadApiPanels() {
   }
 }
 
+/* --------------------------------------------
+   CRONJOBS PANELS
+-------------------------------------------- */
+const activeCronJobsPanelUrl = ref('');
+const failedCronJobsPanelUrl = ref('');
+
+
+/* --------------------------------------------
+   CRONJOBS TIME RANGE CONFIG
+-------------------------------------------- */
+const cronTimeRanges = [
+  { label: 'Last 2 Days', value: 48 },   // default
+  { label: 'Last 7 Days', value: 168 },
+  { label: 'Last 30 Days', value: 720 }
+];
+
+// default to 2 days
+const selectedCronRange = ref(48);
+
+
+/* --------------------------------------------
+   LOAD CRONJOB PANELS
+-------------------------------------------- */
+async function loadCronJobPanels() {
+  try {
+    const to = Date.now();
+    const from = to - selectedCronRange.value * 60 * 60 * 1000;
+
+    activeCronJobsPanelUrl.value = await GrafanaService.getActiveCronJobsPanelUrl(from, to);
+    failedCronJobsPanelUrl.value = await GrafanaService.getFailedCronJobsPanelUrl(from, to);
+  } catch (err) {
+    console.error('Failed to load CronJob panels:', err);
+  }
+}
+
+
 // Initial load
 onMounted(() => {
   loadSystemPanels();
   loadApiPanels();
+  loadCronJobPanels();
 });
 
 // Watch for time range changes
 watch(selectedRange, loadSystemPanels);
 watch(selectedApiRange, loadApiPanels);
+watch(selectedCronRange, loadCronJobPanels);
+
 </script>
 
 <template>
@@ -152,6 +194,38 @@ watch(selectedApiRange, loadApiPanels);
       </div>
 
     </div>
+
+    <!-- -----------------------------------------------------------
+      SECTION 3: CRONJOBS MONITORING
+      ------------------------------------------------------------ -->
+   <!-- CronJobs Monitoring -->
+      <div class="dashboard-header api-header">
+        <h2 class="dashboard-title">CronJob Monitoring</h2>
+
+        <select v-model="selectedCronRange" class="time-range-select">
+          <option v-for="range in cronTimeRanges" :key="range.value" :value="range.value">
+            {{ range.label }}
+          </option>
+        </select>
+      </div>
+
+
+    <div class="dashboard-panels">
+
+      <div class="dashboard-panel" v-if="activeCronJobsPanelUrl">
+        <h3>Active CronJobs</h3>
+        <iframe :src="activeCronJobsPanelUrl" />
+      </div>
+
+      <div class="dashboard-panel" v-if="failedCronJobsPanelUrl">
+        <h3>Failed CronJobs</h3>
+        <iframe :src="failedCronJobsPanelUrl" />
+      </div>
+
+    </div>
+
+
+
 
   </div>
 </template>

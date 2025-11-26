@@ -25,6 +25,8 @@ const GrafanaService = {
 
     if (from && to) {
       url += `&from=${from}&to=${to}`;
+
+
     }
 
     return url;
@@ -108,6 +110,23 @@ const GrafanaService = {
     const panelId = 16;
     return this.getDashboardEmbedUrl(SYSDIG_UID, SYSDIG_SLUG, panelId, from, to);
   },
+
+  /**
+   * Returns the Active CronJobs panel embed URL (panelId 22).
+   */
+  async getActiveCronJobsPanelUrl(from?: number, to?: number): Promise<string> {
+    const panelId = 20;
+    return this.getDashboardEmbedUrl(SYSDIG_UID, SYSDIG_SLUG, panelId, from, to);
+  },
+
+  /**
+   * Returns the Failed CronJobs panel embed URL (panelId 21).
+   */
+  async getFailedCronJobsPanelUrl(from?: number, to?: number): Promise<string> {
+    const panelId = 21;
+    return this.getDashboardEmbedUrl(SYSDIG_UID, SYSDIG_SLUG, panelId, from, to);
+  },
+
 
 };
 
