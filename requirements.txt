@@ -9,6 +9,10 @@ httpx
 fastapi_oidc
 paramiko
 gunicorn
+pytest
+pytest-cov
+pytest-mock
+pytest-asyncio
 
 
 
